@@ -7,7 +7,7 @@ Live tracking, reconciliation, team authentication, and activity tracking for 29
 ## 🚀 Key Features
 
 - **🔐 Built-in Authentication & Access Control**:
-  - Secure login page (`login.html`) with session management and Light/Dark/System theme switcher.
+  - Secure login page (`login.html`) supporting **Email or Username** login, session management, and Light/Dark theme switcher.
   - Role-based permissions across 5 roles: **Admin**, **Developer**, **Content**, **QA**, and **Viewer**.
 - **👥 Team User Management (Admin Only)**:
   - Add / invite new team members with specific roles and passwords.
@@ -46,16 +46,19 @@ widget-dashboard/
 
 ---
 
-## ⚡ Default Team Accounts
+## ⚡ Team Accounts & Passwords
 
-| Name | Role | Email | Password |
-|---|---|---|---|
-| **Administrator** | Admin | `admin@company.com` | `Admin@123` |
-| **Prasanna Sir** | Admin | `prasanna@company.com` | `Prasanna@123` |
-| **Nitin** | Developer | `nitin@company.com` | `Nitin@123` |
-| **Content Team** | Content | `content@company.com` | `Content@123` |
-| **QA Team** | QA | `qa@company.com` | `Qa@123` |
-| **Viewer** | Viewer | `viewer@company.com` | `Viewer@123` |
+You can sign in using **either** your registered Email address or your Username:
+
+| Name | Role | Username | Email | Password |
+|---|---|---|---|---|
+| **Raj Shinde (GitHub Owner)** | **Admin** | `tce-rajs` | `raj.shinde@optimizeq.com` | `Raj@123` |
+| **Administrator** | **Admin** | `admin` | `admin@company.com` | `Admin@123` |
+| **Prasanna Sir** | **Admin** | `prasanna` | `prasanna@company.com` | `Prasanna@123` |
+| **Nitin** | **Developer** | `nitin` | `nitin@company.com` | `Nitin@123` |
+| **Content Team** | **Content** | `content` | `content@company.com` | `Content@123` |
+| **QA Team** | **QA** | `qa` | `qa@company.com` | `Qa@123` |
+| **Viewer** | **Viewer** | `viewer` | `viewer@company.com` | `Viewer@123` |
 
 ---
 

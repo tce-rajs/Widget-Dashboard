@@ -4,16 +4,28 @@
  */
 
 const AUTH_STORAGE_KEY = 'widget_dashboard_auth_state_v1';
-const USERS_STORAGE_KEY = 'widget_dashboard_users_v1';
+const USERS_STORAGE_KEY = 'widget_dashboard_users_v2';
 const ACTIVITY_STORAGE_KEY = 'widget_dashboard_activity_logs_v1';
 
-// Default initial team members
+// Default initial team members (linked with GitHub repository)
 const INITIAL_USERS = [
+    {
+        id: 'usr_raj_00',
+        fullName: 'Raj Shinde',
+        username: 'tce-rajs',
+        email: 'raj.shinde@optimizeq.com',
+        passwordHash: 'Raj@123',
+        role: 'admin',
+        status: 'active',
+        createdAt: '2026-11-10T08:00:00.000Z',
+        lastLogin: '2026-11-16T11:00:00.000Z'
+    },
     {
         id: 'usr_admin_01',
         fullName: 'Administrator',
+        username: 'admin',
         email: 'admin@company.com',
-        passwordHash: 'Admin@123', // In real prod, this is hashed; stored for demonstration
+        passwordHash: 'Admin@123',
         role: 'admin',
         status: 'active',
         createdAt: '2026-11-10T09:00:00.000Z',
@@ -22,6 +34,7 @@ const INITIAL_USERS = [
     {
         id: 'usr_prasanna_02',
         fullName: 'Prasanna Sir',
+        username: 'prasanna',
         email: 'prasanna@company.com',
         passwordHash: 'Prasanna@123',
         role: 'admin',
@@ -32,6 +45,7 @@ const INITIAL_USERS = [
     {
         id: 'usr_nitin_03',
         fullName: 'Nitin',
+        username: 'nitin',
         email: 'nitin@company.com',
         passwordHash: 'Nitin@123',
         role: 'developer',
@@ -42,6 +56,7 @@ const INITIAL_USERS = [
     {
         id: 'usr_content_04',
         fullName: 'Content Team Lead',
+        username: 'content',
         email: 'content@company.com',
         passwordHash: 'Content@123',
         role: 'content',
@@ -52,6 +67,7 @@ const INITIAL_USERS = [
     {
         id: 'usr_qa_05',
         fullName: 'QA Verification Engineer',
+        username: 'qa',
         email: 'qa@company.com',
         passwordHash: 'Qa@123',
         role: 'qa',
@@ -62,6 +78,7 @@ const INITIAL_USERS = [
     {
         id: 'usr_mgmt_06',
         fullName: 'Academic Management',
+        username: 'viewer',
         email: 'viewer@company.com',
         passwordHash: 'Viewer@123',
         role: 'viewer',
@@ -118,7 +135,48 @@ class AuthManager {
     }
 
     initUsers() {
-        if (!localStorage.getItem(USERS_STORAGE_KEY)) {
+        const stored = localStorage.getItem(USERS_STORAGE_KEY);
+        if (!stored) {
+            const legacy = localStorage.getItem('widget_dashboard_users_v1');
+            if (legacy) {
+                try {
+                    const legacyUsers = JSON.parse(legacy) || [];
+                    const merged = [...INITIAL_USERS];
+                    legacyUsers.forEach(u => {
+                        if (!merged.some(m => m.email.toLowerCase() === u.email.toLowerCase())) {
+                            merged.push(u);
+                        }
+                    });
+                    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
+                    return;
+                } catch {}
+            }
+            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
+            return;
+        }
+        try {
+            const currentUsers = JSON.parse(stored) || [];
+            let updated = false;
+            INITIAL_USERS.forEach(seed => {
+                const found = currentUsers.find(u => u.email.toLowerCase() === seed.email.toLowerCase());
+                if (!found) {
+                    currentUsers.push(seed);
+                    updated = true;
+                } else {
+                    if (seed.username && found.username !== seed.username) {
+                        found.username = seed.username;
+                        updated = true;
+                    }
+                    if (seed.passwordHash && found.passwordHash !== seed.passwordHash) {
+                        found.passwordHash = seed.passwordHash;
+                        updated = true;
+                    }
+                }
+            });
+            if (updated) {
+                localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(currentUsers));
+            }
+        } catch {
             localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
         }
     }
@@ -184,11 +242,14 @@ class AuthManager {
         }
 
         const users = this.getUsers();
-        const user = users.find(u => u.email.toLowerCase() === cleanEmail);
+        const user = users.find(u => 
+            u.email.toLowerCase() === cleanEmail || 
+            (u.username && u.username.toLowerCase() === cleanEmail)
+        );
 
         if (!user) {
-            this.logActivity('LOGIN_FAILED', 'Authentication', cleanEmail, 'Invalid email entered');
-            return { success: false, error: 'No account found with this email address.' };
+            this.logActivity('LOGIN_FAILED', 'Authentication', cleanEmail, 'Invalid email or username entered');
+            return { success: false, error: 'No account found with this email address or username.' };
         }
 
         if (user.status === 'disabled') {
