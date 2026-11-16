@@ -5,6 +5,7 @@
 
 const AUTH_STORAGE_KEY = 'widget_dashboard_auth_state_v1';
 const USERS_STORAGE_KEY = 'widget_dashboard_users_v2';
+const DELETED_USERS_STORAGE_KEY = 'widget_dashboard_deleted_users_v2';
 const ACTIVITY_STORAGE_KEY = 'widget_dashboard_activity_logs_v1';
 
 // Default initial team members (linked with GitHub repository)
@@ -134,50 +135,53 @@ class AuthManager {
         this.initLogs();
     }
 
+    getDeletedUserEmails() {
+        try {
+            return JSON.parse(localStorage.getItem(DELETED_USERS_STORAGE_KEY)) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    saveDeletedUserEmail(email) {
+        const list = this.getDeletedUserEmails();
+        const clean = (email || '').trim().toLowerCase();
+        if (clean && !list.includes(clean)) {
+            list.push(clean);
+            localStorage.setItem(DELETED_USERS_STORAGE_KEY, JSON.stringify(list));
+        }
+    }
+
     initUsers() {
+        const deletedList = this.getDeletedUserEmails();
         const stored = localStorage.getItem(USERS_STORAGE_KEY);
         if (!stored) {
-            const legacy = localStorage.getItem('widget_dashboard_users_v1');
-            if (legacy) {
-                try {
-                    const legacyUsers = JSON.parse(legacy) || [];
-                    const merged = [...INITIAL_USERS];
-                    legacyUsers.forEach(u => {
-                        if (!merged.some(m => m.email.toLowerCase() === u.email.toLowerCase())) {
-                            merged.push(u);
-                        }
-                    });
-                    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
-                    return;
-                } catch {}
-            }
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
+            const filtered = INITIAL_USERS.filter(u => !deletedList.includes(u.email.toLowerCase()));
+            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(filtered));
             return;
         }
         try {
-            const currentUsers = JSON.parse(stored) || [];
-            let updated = false;
+            let currentUsers = JSON.parse(stored) || [];
+            currentUsers = currentUsers.filter(u => !deletedList.includes(u.email.toLowerCase()));
+
             INITIAL_USERS.forEach(seed => {
+                if (deletedList.includes(seed.email.toLowerCase())) return;
                 const found = currentUsers.find(u => u.email.toLowerCase() === seed.email.toLowerCase());
                 if (!found) {
                     currentUsers.push(seed);
-                    updated = true;
                 } else {
                     if (seed.username && found.username !== seed.username) {
                         found.username = seed.username;
-                        updated = true;
                     }
                     if (seed.passwordHash && found.passwordHash !== seed.passwordHash) {
                         found.passwordHash = seed.passwordHash;
-                        updated = true;
                     }
                 }
             });
-            if (updated) {
-                localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(currentUsers));
-            }
+            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(currentUsers));
         } catch {
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
+            const filtered = INITIAL_USERS.filter(u => !deletedList.includes(u.email.toLowerCase()));
+            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(filtered));
         }
     }
 
@@ -471,25 +475,41 @@ class AuthManager {
     deleteUser(userId) {
         if (!this.isAdmin()) return { success: false, error: 'Unauthorized: Admin privilege required' };
         const users = this.getUsers();
-        const user = users.find(u => u.id === userId);
-        if (!user) return { success: false, error: 'User not found' };
+        const user = users.find(u => String(u.id) === String(userId));
+        if (!user) return { success: false, error: 'User not found in system.' };
 
         const currentUser = this.getCurrentUser();
-        if (currentUser && currentUser.id === userId) {
+        if (currentUser && String(currentUser.id) === String(userId)) {
             return { success: false, error: 'You cannot delete your own logged-in administrator account.' };
         }
 
-        if (user.role === 'admin') {
-            const otherAdmins = users.filter(u => u.role === 'admin' && u.id !== userId);
+        if ((user.role || '').toLowerCase() === 'admin') {
+            const otherAdmins = users.filter(u => (u.role || '').toLowerCase() === 'admin' && String(u.id) !== String(userId));
             if (otherAdmins.length === 0) {
                 return { success: false, error: 'Cannot delete the only administrator account.' };
             }
         }
 
-        const remainingUsers = users.filter(u => u.id !== userId);
+        // Permanently record on deleted blacklist so it NEVER gets resurrected on reload
+        this.saveDeletedUserEmail(user.email);
+
+        const remainingUsers = users.filter(u => String(u.id) !== String(userId));
         this.saveUsers(remainingUsers);
         this.logActivity('USER_MGMT', 'User Management', user.email, `Admin deleted user ${user.fullName} (${user.email})`);
-        return { success: true };
+
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('dashboard_users_changed', { detail: { action: 'delete', userId: userId } }));
+        }
+
+        return { success: true, user: user, remainingCount: remainingUsers.length };
+    }
+
+    restoreDefaultUsers() {
+        if (!this.isAdmin()) return { success: false, error: 'Unauthorized: Admin privilege required' };
+        localStorage.removeItem(DELETED_USERS_STORAGE_KEY);
+        this.saveUsers(INITIAL_USERS);
+        this.logActivity('USER_MGMT', 'User Management', '', 'Admin restored default team accounts');
+        return { success: true, users: INITIAL_USERS };
     }
 }
 

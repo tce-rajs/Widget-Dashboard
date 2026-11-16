@@ -1176,6 +1176,30 @@ def generate():
                 </button>
             </div>
 
+            <!-- Live User Summary Metric Cards (Auto-updates when user is removed/added) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="app-card border rounded-lg p-3 space-y-0.5">
+                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Members</span>
+                    <div id="statTotalUsers" class="text-xl font-bold text-slate-900 dark:text-white">0</div>
+                    <div class="text-[10px] text-slate-400">Registered accounts</div>
+                </div>
+                <div class="app-card border rounded-lg p-3 space-y-0.5">
+                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Active Accounts</span>
+                    <div id="statActiveUsers" class="text-xl font-bold text-emerald-600 dark:text-emerald-400">0</div>
+                    <div class="text-[10px] text-slate-400">Can log in</div>
+                </div>
+                <div class="app-card border rounded-lg p-3 space-y-0.5">
+                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Administrators</span>
+                    <div id="statAdminUsers" class="text-xl font-bold text-blue-600 dark:text-blue-400">0</div>
+                    <div class="text-[10px] text-slate-400">Full access</div>
+                </div>
+                <div class="app-card border rounded-lg p-3 space-y-0.5">
+                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Team Staff</span>
+                    <div id="statStaffUsers" class="text-xl font-bold text-purple-600 dark:text-purple-400">0</div>
+                    <div class="text-[10px] text-slate-400">Dev, Content & QA</div>
+                </div>
+            </div>
+
             <!-- Users Table -->
             <div class="app-card border rounded-lg overflow-hidden shadow-sm">
                 <div class="overflow-x-auto">
@@ -1460,6 +1484,39 @@ def generate():
                     <button type="submit" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium">Save Changes</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Dedicated In-App Delete User Confirmation Modal -->
+    <div id="deleteUserModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="app-card border border-rose-500/30 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">Delete Team Member</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">This action is permanent and cannot be undone.</p>
+                </div>
+            </div>
+            
+            <div class="p-3 rounded-lg app-subtle border text-xs space-y-1">
+                <div class="font-semibold text-slate-900 dark:text-white" id="deleteTargetName">User Name</div>
+                <div class="text-[11px] text-slate-500 font-mono" id="deleteTargetEmail">email@company.com</div>
+                <div class="text-[10px] text-slate-400 pt-1" id="deleteTargetRole">Role: -</div>
+            </div>
+
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Removing this user will permanently revoke their login. All dashboard metrics and user records will update immediately.
+            </p>
+
+            <div class="pt-2 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeDeleteUserModal()" class="px-3 py-1.5 rounded-lg border app-subtle hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-medium">Cancel</button>
+                <button type="button" onclick="confirmDeleteUser()" id="confirmDeleteBtn" class="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs shadow-sm flex items-center gap-1.5">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    <span>Delete User</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2080,6 +2137,22 @@ def generate():
             const users = authManager.getUsers();
             const currentUser = authManager.getCurrentUser();
 
+            // Update live summary metrics instantly
+            const total = users.length;
+            const active = users.filter(u => u.status === 'active').length;
+            const admins = users.filter(u => u.role === 'admin').length;
+            const staff = users.filter(u => u.role !== 'admin').length;
+
+            const elTotal = document.getElementById('statTotalUsers');
+            const elActive = document.getElementById('statActiveUsers');
+            const elAdmin = document.getElementById('statAdminUsers');
+            const elStaff = document.getElementById('statStaffUsers');
+
+            if (elTotal) elTotal.innerText = total;
+            if (elActive) elActive.innerText = active;
+            if (elAdmin) elAdmin.innerText = admins;
+            if (elStaff) elStaff.innerText = staff;
+
             tbody.innerHTML = users.map(u => {
                 const isSelf = currentUser && currentUser.id === u.id;
                 const safeName = (u.fullName || '').replace(/'/g, "\\'");
@@ -2114,7 +2187,7 @@ def generate():
                             <button onclick="handleToggleStatus('${u.id}')" title="Toggle active status" class="px-2 py-1 rounded text-[11px] font-medium border app-subtle hover:bg-slate-200 dark:hover:bg-slate-800 transition ${u.status === 'active' ? 'text-amber-600' : 'text-emerald-600'}">
                                 ${u.status === 'active' ? 'Disable' : 'Enable'}
                             </button>
-                            <button onclick="handleDeleteUser('${u.id}', '${safeName}')" ${isSelf ? 'disabled title="Cannot delete yourself" class="px-2 py-1 rounded text-[11px] font-medium border border-slate-200 dark:border-slate-800 opacity-40 cursor-not-allowed"' : 'title="Delete user" class="px-2 py-1 rounded text-[11px] font-medium border border-rose-200 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 transition flex items-center gap-1"'}>
+                            <button onclick="promptDeleteUser('${u.id}', '${safeName}', '${u.email}', '${u.role}')" ${isSelf ? 'disabled title="Cannot delete yourself" class="px-2 py-1 rounded text-[11px] font-medium border border-slate-200 dark:border-slate-800 opacity-40 cursor-not-allowed"' : 'title="Delete user" class="px-2 py-1 rounded text-[11px] font-medium border border-rose-200 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 transition flex items-center gap-1"'}>
                                 <i data-lucide="trash-2" class="w-3 h-3"></i>
                                 <span>Delete</span>
                             </button>
@@ -2151,6 +2224,7 @@ def generate():
 
             closeAddUserModal();
             renderUsersTable();
+            renderActivityTable();
             showToast(`Added ${name} (${role}) to team members`, 'success');
         }
 
@@ -2198,29 +2272,48 @@ def generate():
 
             closeEditUserModal();
             renderUsersTable();
+            renderActivityTable();
             checkAuthAndRender();
             showToast(`User details updated for ${name}`, 'success');
         }
 
-        function handleDeleteUser(userId, userName) {
-            if (!confirm(`Are you sure you want to permanently delete user "${userName}"?\n\nThis will remove their login and access completely.`)) {
-                return;
-            }
+        let pendingDeleteUserId = null;
 
-            const res = authManager.deleteUser(userId);
+        function promptDeleteUser(userId, userName, userEmail, userRole) {
+            pendingDeleteUserId = userId;
+            document.getElementById('deleteTargetName').innerText = userName;
+            document.getElementById('deleteTargetEmail').innerText = userEmail;
+            document.getElementById('deleteTargetRole').innerText = 'Role: ' + (userRole || 'Viewer').toUpperCase();
+            document.getElementById('deleteUserModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeDeleteUserModal() {
+            pendingDeleteUserId = null;
+            document.getElementById('deleteUserModal').classList.add('hidden');
+        }
+
+        function confirmDeleteUser() {
+            if (!pendingDeleteUserId) return;
+            const targetId = pendingDeleteUserId;
+            const res = authManager.deleteUser(targetId);
+            closeDeleteUserModal();
+
             if (!res.success) {
                 showToast(res.error, 'error');
                 return;
             }
 
             renderUsersTable();
-            showToast(`User "${userName}" has been deleted.`, 'success');
+            renderActivityTable();
+            showToast('User removed permanently and all dashboard records updated.', 'success');
         }
 
         function handleToggleStatus(userId) {
             const res = authManager.toggleUserStatus(userId);
             if (res.success) {
                 renderUsersTable();
+                renderActivityTable();
                 showToast(`User status set to ${res.status.toUpperCase()}`, 'success');
             } else {
                 showToast(res.error, 'error');
