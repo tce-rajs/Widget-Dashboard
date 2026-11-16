@@ -525,8 +525,8 @@ def generate():
                 <!-- Right Header Actions (User Pill + Theme + Sync + Update + Export) -->
                 <div class="flex items-center gap-2">
                     
-                    <!-- Authenticated User Profile Pill & Role Badge -->
-                    <div id="userProfilePill" class="app-subtle border rounded-lg px-2.5 py-1 text-xs flex items-center gap-2">
+                    <!-- Authenticated User Profile Pill & Role Badge (Shown only if logged in) -->
+                    <div id="userProfilePill" class="app-subtle border rounded-lg px-2.5 py-1 text-xs items-center gap-2 hidden">
                         <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatar">A</div>
                         <div class="hidden sm:block text-left leading-tight">
                             <div class="font-semibold text-slate-900 dark:text-white truncate max-w-[120px]" id="userNameDisplay">User</div>
@@ -1540,8 +1540,8 @@ def generate():
 
     <!-- Script -->
     <script>
-        // Enforce Authentication Guard on Page Load
-        const currentUser = authManager.requireAuth();
+        // Optional Authentication - Dashboard opens directly without requiring login
+        const currentUser = (typeof authManager !== 'undefined') ? authManager.getCurrentUser() : null;
 
         let rawData = __DATA_JSON__;
         const REPO_CATALOG = __REPO_CATALOG_JSON__;
@@ -1565,19 +1565,27 @@ def generate():
         let showTech = false;
         let currentModalPath = '';
 
-        // Initialize User Session in UI
+        // Initialize User Session in UI (if logged in)
         function initUserProfile() {
-            if (!currentUser) return;
+            const pill = document.getElementById('userProfilePill');
+            if (!currentUser) {
+                if (pill) pill.classList.add('hidden');
+                return;
+            }
+            if (pill) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+            }
             const nameEl = document.getElementById('userNameDisplay');
             const roleEl = document.getElementById('userRoleBadge');
             const avatarEl = document.getElementById('userAvatar');
 
             if (nameEl) nameEl.innerText = currentUser.fullName;
-            if (roleEl) roleEl.innerText = currentUser.role.toUpperCase();
+            if (roleEl) roleEl.innerText = (currentUser.role || 'viewer').toUpperCase();
             if (avatarEl) avatarEl.innerText = (currentUser.fullName || 'U').charAt(0).toUpperCase();
 
             // Show Admin-Only Tabs
-            if (currentUser.role === 'admin') {
+            if ((currentUser.role || '').toLowerCase() === 'admin') {
                 const tabUsers = document.getElementById('tab-users');
                 const tabActivity = document.getElementById('tab-activity');
                 if (tabUsers) tabUsers.classList.remove('hidden');
