@@ -27,14 +27,14 @@
 </head>
 <body class="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 transition-colors">
 
-    <!-- Theme Toggle (Subtle Top-Right Icon) -->
+    <!-- Theme Toggle (Top-Right Icon) -->
     <div class="fixed top-4 right-4 z-10">
         <button onclick="toggleTheme()" id="themeToggleBtn" title="Toggle theme" class="p-2 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm transition">
             <i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i>
         </button>
     </div>
 
-    <!-- Centered Card -->
+    <!-- Centered Login Card -->
     <div class="w-full max-w-sm">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-7 sm:p-8 shadow-xl space-y-6">
             
@@ -66,7 +66,7 @@
                 <div class="space-y-1 text-left">
                     <div class="flex items-center justify-between">
                         <label for="password" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Password</label>
-                        <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">Forgot?</button>
+                        <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">Forgot password?</button>
                     </div>
                     <div class="relative">
                         <input type="password" id="password" required placeholder="••••••••" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-3 pr-9 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
@@ -90,19 +90,6 @@
                 </button>
             </form>
 
-            <!-- Clean Quick Demo Selector -->
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center space-y-1.5">
-                <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Demo Quick Login</span>
-                <select id="demoSelector" onchange="quickSelect(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 focus:outline-none cursor-pointer">
-                    <option value="">Select a test role...</option>
-                    <option value="admin">Administrator (Admin)</option>
-                    <option value="developer">Developer (Nitin)</option>
-                    <option value="qa">QA Team</option>
-                    <option value="content">Content Team</option>
-                    <option value="viewer">Viewer (Read-Only)</option>
-                </select>
-            </div>
-
         </div>
     </div>
 
@@ -110,14 +97,22 @@
     <div id="forgotModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-left">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Reset Password</h3>
-                <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-slate-600">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="key" class="w-4 h-4 text-blue-500"></i>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">Forgot Password</h3>
+                </div>
+                <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Passwords are managed centrally by your team administrator. Please contact <strong>admin@company.com</strong> or your administrator to reset your credentials.
-            </p>
+            <div class="space-y-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p>
+                    Please connect with your <strong>Administrator</strong> to reset your password or update your login credentials.
+                </p>
+                <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+                    Contact: <span class="font-mono text-slate-700 dark:text-slate-300 font-semibold">admin@company.com</span>
+                </div>
+            </div>
             <div class="pt-2 flex justify-end">
                 <button onclick="closeForgotPasswordModal()" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs">Got it</button>
             </div>
@@ -126,14 +121,6 @@
 
     <script src="auth.js"></script>
     <script>
-        const DEMO_ACCOUNTS = {
-            admin: { email: 'admin@company.com', pass: 'Admin@123' },
-            developer: { email: 'nitin@company.com', pass: 'Nitin@123' },
-            qa: { email: 'qa@company.com', pass: 'Qa@123' },
-            content: { email: 'content@company.com', pass: 'Content@123' },
-            viewer: { email: 'viewer@company.com', pass: 'Viewer@123' }
-        };
-
         window.addEventListener('DOMContentLoaded', () => {
             initTheme();
             lucide.createIcons();
@@ -166,22 +153,6 @@
             const params = new URLSearchParams(window.location.search);
             const redirect = params.get('redirect') || 'index.html';
             window.location.href = redirect;
-        }
-
-        function quickSelect(role) {
-            if (!role || !DEMO_ACCOUNTS[role]) return;
-            const acc = DEMO_ACCOUNTS[role];
-            document.getElementById('email').value = acc.email;
-            document.getElementById('password').value = acc.pass;
-            document.getElementById('errorBanner').classList.add('hidden');
-            
-            // Log in immediately on selection
-            const res = authManager.login(acc.email, acc.pass, true);
-            if (res.success) {
-                const params = new URLSearchParams(window.location.search);
-                const redirect = params.get('redirect') || 'index.html';
-                window.location.href = redirect;
-            }
         }
 
         function togglePasswordVisibility() {
