@@ -1183,6 +1183,20 @@ def generate():
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Auth & Activity Manager -->
     <script src="auth.js"></script>
+    <script>
+        // Immediate Authentication Guard
+        (function() {
+            try {
+                const s = localStorage.getItem('widget_dashboard_auth_state_v1') || sessionStorage.getItem('widget_dashboard_auth_state_v1');
+                if (!s || !JSON.parse(s).user) {
+                    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+                    window.location.replace('login.html?redirect=' + encodeURIComponent(currentPath));
+                }
+            } catch (e) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1345,7 +1359,10 @@ def generate():
                         <button type="button" onclick="toggleThemeQuick()" title="Toggle Dark/Light Mode" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 transition flex items-center justify-center cursor-pointer shadow-sm">
                             <i data-lucide="moon" class="w-3.5 h-3.5"></i>
                         </button>
-                        <button onclick="exportCSV()" title="Export CSV" class="p-1.5 px-2 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-[11px] font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1">
+                        <button onclick="handleLogout()" title="Log out" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-400 hover:text-rose-500 transition flex items-center justify-center cursor-pointer shadow-sm">
+                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="exportCSV()" title="Export CSV" class="p-1 px-2 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-[11px] font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1">
                             <i data-lucide="download" class="w-3 h-3"></i>
                             <span>CSV</span>
                         </button>
@@ -3013,7 +3030,7 @@ def generate():
 </div>
     <!-- Script -->
     <script>
-        const currentUser = (typeof authManager !== 'undefined') ? authManager.getCurrentUser() : null;
+        const currentUser = (typeof authManager !== 'undefined') ? authManager.requireAuth() : null;
 
         let rawData = __DATA_JSON__;
         let rawQaData = __QA_DATA_JSON__;
@@ -3042,11 +3059,20 @@ def generate():
             if (roleEl) roleEl.innerText = (currentUser.role || 'viewer').toUpperCase();
             if (avatarEl) avatarEl.innerText = (currentUser.fullName || 'U').charAt(0).toUpperCase();
 
-            if ((currentUser.role || '').toLowerCase() === 'admin') {
+            // Role-based visibility
+            const role = (currentUser.role || '').toLowerCase();
+            if (role === 'admin') {
                 const tabUsers = document.getElementById('tab-users');
                 const tabActivity = document.getElementById('tab-activity');
+                const tabDocs = document.getElementById('tab-docs');
+                const sectionInsights = document.getElementById('section-management-insights');
+                const sectionActionPlan = document.getElementById('section-management-action-plan');
+
                 if (tabUsers) tabUsers.classList.remove('hidden');
                 if (tabActivity) tabActivity.classList.remove('hidden');
+                if (tabDocs) tabDocs.classList.remove('hidden');
+                if (sectionInsights) sectionInsights.classList.remove('hidden');
+                if (sectionActionPlan) sectionActionPlan.classList.remove('hidden');
             }
         }
 
@@ -3144,6 +3170,73 @@ def generate():
             }
             lucide.createIcons();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderUsersTable() {
+            if (typeof authManager === 'undefined') return;
+            const users = authManager.getUsers();
+            const tbody = document.getElementById('userTableBody');
+            if (!tbody) return;
+
+            const totalEl = document.getElementById('statTotalUsers');
+            const activeEl = document.getElementById('statActiveUsers');
+            const adminEl = document.getElementById('statAdminUsers');
+            const staffEl = document.getElementById('statStaffUsers');
+
+            if (totalEl) totalEl.innerText = users.length;
+            if (activeEl) activeEl.innerText = users.filter(u => u.status === 'active').length;
+            if (adminEl) adminEl.innerText = users.filter(u => u.role === 'admin').length;
+            if (staffEl) staffEl.innerText = users.filter(u => u.role !== 'admin' && u.role !== 'viewer').length;
+
+            tbody.innerHTML = users.map(u => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4">
+                        <div class="font-medium text-slate-900 dark:text-white">${u.fullName}</div>
+                        <div class="text-[11px] text-slate-400 font-mono">${u.email}</div>
+                    </td>
+                    <td class="py-2.5 px-4 font-mono text-[11px] uppercase font-bold text-blue-600 dark:text-blue-400">
+                        ${u.role}
+                    </td>
+                    <td class="py-2.5 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border border-slate-500/20'}">
+                            ${u.status}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-4 font-mono text-[11px] text-slate-500">
+                        ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td class="py-2.5 px-4 text-right">
+                        <span class="text-[11px] text-slate-400 font-medium">Active Member</span>
+                    </td>
+                </tr>
+            `).join('');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function renderActivityTable() {
+            if (typeof authManager === 'undefined') return;
+            const logs = authManager.getLogs ? authManager.getLogs() : [];
+            const tbody = document.getElementById('activityTableBody');
+            if (!tbody) return;
+
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">No activity logged yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = logs.map(l => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-mono text-[11px] text-slate-500">${l.timestamp ? new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''}</td>
+                    <td class="py-2.5 px-4">
+                        <div class="font-medium text-slate-900 dark:text-white">${l.userName || l.userEmail || ''}</div>
+                        <div class="text-[10px] text-slate-400 font-mono uppercase">${l.role || ''}</div>
+                    </td>
+                    <td class="py-2.5 px-4 font-mono text-[11px] font-semibold text-teal-600 dark:text-teal-400">${l.activityType || ''}</td>
+                    <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400">${l.section || ''}</td>
+                    <td class="py-2.5 px-4 text-slate-500">${l.details || ''}</td>
+                </tr>
+            `).join('');
+            if (window.lucide) lucide.createIcons();
         }
 
         function setFilterQuick(statusKey) {

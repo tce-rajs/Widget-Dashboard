@@ -103,6 +103,8 @@ def run_pipeline(excel_file=None, auto_push=False):
         sync_files = [
             ("index.html", "index.html"),
             ("widget-comparison.html", "widget-comparison.html"),
+            ("login.html", "login.html"),
+            ("auth.js", "auth.js"),
             ("Widgets in CE Platinum cum Crystal.xlsx", "Widgets in CE Platinum cum Crystal.xlsx"),
             ("run_local_dashboard.bat", "run_local_dashboard.bat"),
             ("run_local_dashboard.ps1", "run_local_dashboard.ps1"),
