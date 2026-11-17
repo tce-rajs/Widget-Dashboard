@@ -1381,22 +1381,28 @@ def generate():
                     </div>
 
                     <!-- Mobile Action Buttons (Right-aligned next to logo on mobile) -->
-                    <div class="flex sm:hidden items-center gap-1.5 shrink-0">
-                        <button type="button" onclick="toggleThemeQuick()" title="Toggle Dark/Light Mode" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 transition flex items-center justify-center cursor-pointer shadow-sm">
-                            <i data-lucide="moon" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <button onclick="handleLogout()" title="Log out" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-400 hover:text-rose-500 transition flex items-center justify-center cursor-pointer shadow-sm">
-                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <button onclick="exportCSV()" title="Export CSV" class="p-1 px-2 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-[11px] font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1">
-                            <i data-lucide="download" class="w-3 h-3"></i>
-                            <span>CSV</span>
-                        </button>
+                    <div class="flex sm:hidden flex-col items-end gap-1 shrink-0">
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="toggleThemeQuick()" title="Toggle Dark/Light Mode" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 transition flex items-center justify-center cursor-pointer shadow-sm">
+                                <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="handleLogout()" title="Log out" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-400 hover:text-rose-500 transition flex items-center justify-center cursor-pointer shadow-sm">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="exportCSV()" title="Export Excel / CSV" class="p-1 px-2 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-[11px] font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1">
+                                <i data-lucide="download" class="w-3 h-3 text-emerald-500"></i>
+                                <span>Excel</span>
+                            </button>
+                        </div>
+                        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
+                            <i data-lucide="clock" class="w-2.5 h-2.5 text-slate-400"></i>
+                            <span id="mobileLastUpdatedTime">{build_time}</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Desktop Action Buttons -->
-                <div class="hidden sm:flex items-center gap-2 sm:gap-2.5">
+                <div class="hidden sm:flex items-center gap-3">
                     
                     <!-- User Profile Pill (if logged in) -->
                     <div id="userProfilePill" class="app-subtle border rounded-lg px-2.5 py-1 text-xs items-center gap-2 hidden">
@@ -1415,61 +1421,74 @@ def generate():
                         <i data-lucide="moon" id="quickThemeIcon" class="w-4 h-4"></i>
                     </button>
 
-                    <!-- Update Excel Button with Hover Dropdown Popover -->
-                    <div class="relative group" id="updateExcelContainer">
-                        <button type="button" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer">
-                            Update Excel
-                        </button>
+                    <!-- Update Excel & Export Excel with Last Updated Time Below -->
+                    <div class="flex flex-col items-end gap-1">
+                        <div class="flex items-center gap-2">
+                            <!-- Update Excel Button with Hover Dropdown Popover -->
+                            <div class="relative group" id="updateExcelContainer">
+                                <button type="button" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1.5">
+                                    <i data-lucide="file-up" class="w-3.5 h-3.5 text-blue-500"></i>
+                                    <span>Update Excel</span>
+                                </button>
 
-                        <div class="absolute right-0 top-full pt-2 w-80 sm:w-96 hidden group-hover:block hover:block focus-within:block z-50 transition-all duration-200 drop-shadow-2xl">
-                            <div class="app-card border rounded-2xl p-4 shadow-2xl space-y-3.5 bg-white dark:bg-[#111622] border-slate-200 dark:border-slate-800">
-                                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                                            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                                <div class="absolute right-0 top-full pt-2 w-80 sm:w-96 hidden group-hover:block hover:block focus-within:block z-50 transition-all duration-200 drop-shadow-2xl">
+                                    <div class="app-card border rounded-2xl p-4 shadow-2xl space-y-3.5 bg-white dark:bg-[#111622] border-slate-200 dark:border-slate-800">
+                                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                                    <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="text-xs font-bold text-slate-900 dark:text-white">Update Spreadsheet</div>
+                                                    <div class="text-[10px] text-slate-500 dark:text-slate-400">Recalculate dashboard live</div>
+                                                </div>
+                                            </div>
+                                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                                                Live Sync
+                                            </span>
                                         </div>
-                                        <div>
-                                            <div class="text-xs font-bold text-slate-900 dark:text-white">Update Spreadsheet</div>
-                                            <div class="text-[10px] text-slate-500 dark:text-slate-400">Recalculate dashboard live</div>
+
+                                        <div id="dropZoneCard" onclick="document.getElementById('excelFileInput').click()" class="border-2 border-dashed border-blue-500/40 hover:border-blue-500 dark:border-blue-500/30 dark:hover:border-blue-400 rounded-xl p-4 bg-gradient-to-b from-blue-500/[0.04] to-transparent cursor-pointer transition text-center group/drop">
+                                            <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcelFileUpload(event)" />
+                                            <div class="w-10 h-10 mx-auto rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 group-hover/drop:scale-110 transition shadow-sm">
+                                                <i data-lucide="file-up" class="w-5 h-5"></i>
+                                            </div>
+                                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover/drop:text-blue-600 dark:group-hover/drop:text-blue-400 transition-colors">
+                                                Drag & Drop Updated Excel Here
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                                or <span class="text-blue-600 dark:text-blue-400 font-medium underline">browse file from computer</span>
+                                            </p>
                                         </div>
-                                    </div>
-                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
-                                        Live Sync
-                                    </span>
-                                </div>
 
-                                <div id="dropZoneCard" onclick="document.getElementById('excelFileInput').click()" class="border-2 border-dashed border-blue-500/40 hover:border-blue-500 dark:border-blue-500/30 dark:hover:border-blue-400 rounded-xl p-4 bg-gradient-to-b from-blue-500/[0.04] to-transparent cursor-pointer transition text-center group/drop">
-                                    <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcelFileUpload(event)" />
-                                    <div class="w-10 h-10 mx-auto rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 group-hover/drop:scale-110 transition shadow-sm">
-                                        <i data-lucide="file-up" class="w-5 h-5"></i>
-                                    </div>
-                                    <div class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover/drop:text-blue-600 dark:group-hover/drop:text-blue-400 transition-colors">
-                                        Drag & Drop Updated Excel Here
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                                        or <span class="text-blue-600 dark:text-blue-400 font-medium underline">browse file from computer</span>
-                                    </p>
-                                </div>
-
-                                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 text-[11px] space-y-1.5">
-                                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] uppercase font-semibold tracking-wider">
-                                        <span>Current Active Sheet</span>
-                                        <span class="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                                            <i data-lucide="check" class="w-3.5 h-3.5"></i> Loaded
-                                        </span>
-                                    </div>
-                                    <div class="font-mono text-xs font-medium text-slate-800 dark:text-slate-200 truncate" id="activeExcelNamePopover">
-                                        {excel_filename}
+                                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 text-[11px] space-y-1.5">
+                                            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] uppercase font-semibold tracking-wider">
+                                                <span>Current Active Sheet</span>
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                                                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Loaded
+                                                </span>
+                                            </div>
+                                            <div class="font-mono text-xs font-medium text-slate-800 dark:text-slate-200 truncate" id="activeExcelNamePopover">
+                                                {excel_filename}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Export Excel Button -->
+                            <button onclick="exportCSV()" title="Export data to Excel / CSV" class="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1.5">
+                                <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-500"></i>
+                                <span>Export Excel</span>
+                            </button>
+                        </div>
+
+                        <!-- Last Updated Date & Time directly below the Update Excel and Export Excel buttons -->
+                        <div class="flex items-center gap-1 text-[10.5px] text-slate-500 dark:text-slate-400 font-mono tracking-tight">
+                            <i data-lucide="clock" class="w-3 h-3 text-slate-400 shrink-0"></i>
+                            <span>Last Updated: <strong id="headerLastUpdatedTime" class="font-semibold text-slate-700 dark:text-slate-300">{build_time}</strong></span>
                         </div>
                     </div>
-
-                    <!-- Export CSV Button -->
-                    <button onclick="exportCSV()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer">
-                        Export CSV
-                    </button>
                 </div>
             </div>
 
@@ -4289,6 +4308,25 @@ Status: All Sources Verified & Checked
             link.click();
             document.body.removeChild(link);
             showToast('CSV exported successfully!', 'success');
+        }
+
+        function handleExcelFileUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) + ', ' +
+                                  now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            
+            const activeExcelNameEl = document.getElementById('activeExcelNamePopover');
+            if (activeExcelNameEl) activeExcelNameEl.textContent = file.name;
+            
+            const headerTimeEl = document.getElementById('headerLastUpdatedTime');
+            if (headerTimeEl) headerTimeEl.textContent = formattedDate;
+            
+            const mobileTimeEl = document.getElementById('mobileLastUpdatedTime');
+            if (mobileTimeEl) mobileTimeEl.textContent = formattedDate;
+
+            showToast(`Spreadsheet "${file.name}" uploaded. Updated: ${formattedDate}`, 'success');
         }
 
         // ==========================================
