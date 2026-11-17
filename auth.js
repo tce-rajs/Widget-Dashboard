@@ -1,12 +1,13 @@
 /**
- * Simple Authentication, Role-Based Access Control, and Activity Tracking Engine
- * Self-contained, zero-external dependency, secure client-side implementation.
+ * Authentication, Role-Based Access Control, Activity Tracking & Cloud Sync Engine
+ * Hybrid Architecture: Client-Side Resilience + Industry-Standard Supabase PostgreSQL Cloud Sync
  */
 
 const AUTH_STORAGE_KEY = 'widget_dashboard_auth_state_v1';
 const USERS_STORAGE_KEY = 'widget_dashboard_users_v2';
 const DELETED_USERS_STORAGE_KEY = 'widget_dashboard_deleted_users_v2';
 const ACTIVITY_STORAGE_KEY = 'widget_dashboard_activity_logs_v1';
+const SUPABASE_STORAGE_CONFIG_KEY = 'widget_dashboard_supabase_config_v1';
 
 // Default initial team members (linked with GitHub repository)
 const INITIAL_USERS = [
@@ -131,10 +132,181 @@ const INITIAL_LOGS = [
 
 class AuthManager {
     constructor() {
+        this.supabase = null;
+        this.realtimeChannel = null;
+        this.cloudSyncing = false;
         this.initUsers();
         this.initLogs();
+        this.initSupabase();
     }
 
+    // ==========================================
+    // SUPABASE CLOUD DATABASE INTEGRATION
+    // ==========================================
+    getSupabaseConfig() {
+        try {
+            const stored = localStorage.getItem(SUPABASE_STORAGE_CONFIG_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed && parsed.url && parsed.anonKey) {
+                    return parsed;
+                }
+            }
+        } catch (e) {
+            console.warn('Error reading Supabase stored config:', e);
+        }
+
+        if (typeof window !== 'undefined' && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
+            return window.SUPABASE_CONFIG;
+        }
+
+        return { url: '', anonKey: '', realtime: true };
+    }
+
+    saveSupabaseConfig(url, anonKey, realtime = true) {
+        const config = {
+            url: (url || '').trim(),
+            anonKey: (anonKey || '').trim(),
+            realtime: !!realtime
+        };
+        try {
+            localStorage.setItem(SUPABASE_STORAGE_CONFIG_KEY, JSON.stringify(config));
+        } catch (e) {
+            console.warn('Error saving Supabase config:', e);
+        }
+        return this.initSupabase();
+    }
+
+    isSupabaseConfigured() {
+        const cfg = this.getSupabaseConfig();
+        return !!(cfg && cfg.url && cfg.anonKey);
+    }
+
+    isSupabaseConnected() {
+        return !!(this.supabase && this.isSupabaseConfigured());
+    }
+
+    initSupabase() {
+        const config = this.getSupabaseConfig();
+        if (config.url && config.anonKey && typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
+            try {
+                this.supabase = window.supabase.createClient(config.url, config.anonKey, {
+                    auth: { persistSession: false }
+                });
+                console.log('[AuthManager] Supabase client initialized for:', config.url);
+                this.syncWithCloud();
+                if (config.realtime) {
+                    this.subscribeRealtime();
+                }
+                return true;
+            } catch (err) {
+                console.error('[AuthManager] Failed to init Supabase client:', err);
+                this.supabase = null;
+                return false;
+            }
+        } else {
+            this.supabase = null;
+            return false;
+        }
+    }
+
+    async syncWithCloud() {
+        if (!this.supabase || this.cloudSyncing) return;
+        this.cloudSyncing = true;
+        try {
+            const { data, error } = await this.supabase
+                .from('app_users')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.warn('[AuthManager] Supabase select error:', error.message);
+                this.cloudSyncing = false;
+                return;
+            }
+
+            if (Array.isArray(data)) {
+                if (data.length === 0) {
+                    // Cloud table is empty: Auto-seed initial local users to Supabase
+                    console.log('[AuthManager] Cloud table empty. Seeding local users to Supabase...');
+                    await this.pushLocalUsersToCloud();
+                } else {
+                    // Map cloud DB records to local user format
+                    const cloudUsers = data.map(r => ({
+                        id: r.id,
+                        fullName: r.full_name,
+                        username: r.username || (r.email ? r.email.split('@')[0] : 'user'),
+                        email: (r.email || '').toLowerCase(),
+                        passwordHash: r.password_hash,
+                        role: r.role || 'viewer',
+                        status: r.status || 'active',
+                        createdAt: r.created_at || new Date().toISOString(),
+                        lastLogin: r.last_login || null
+                    }));
+
+                    this.saveUsers(cloudUsers);
+                    console.log(`[AuthManager] Synced ${cloudUsers.length} users from Supabase Cloud Database!`);
+
+                    if (typeof window !== 'undefined' && window.dispatchEvent) {
+                        window.dispatchEvent(new CustomEvent('dashboard_users_changed', { detail: { source: 'cloud' } }));
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[AuthManager] Cloud sync exception:', e);
+        } finally {
+            this.cloudSyncing = false;
+        }
+    }
+
+    async pushLocalUsersToCloud() {
+        if (!this.supabase) return { success: false, error: 'Supabase client not connected' };
+        try {
+            const users = this.getUsers();
+            const rows = users.map(u => ({
+                id: u.id,
+                full_name: u.fullName,
+                username: u.username || u.email.split('@')[0],
+                email: u.email.toLowerCase(),
+                password_hash: u.passwordHash,
+                role: u.role,
+                status: u.status,
+                created_at: u.createdAt || new Date().toISOString(),
+                last_login: u.lastLogin || null
+            }));
+
+            const { error } = await this.supabase
+                .from('app_users')
+                .upsert(rows, { onConflict: 'email' });
+
+            if (error) return { success: false, error: error.message };
+            return { success: true, count: rows.length };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
+
+    subscribeRealtime() {
+        if (!this.supabase) return;
+        try {
+            if (this.realtimeChannel) {
+                this.supabase.removeChannel(this.realtimeChannel);
+            }
+            this.realtimeChannel = this.supabase
+                .channel('public:app_users')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'app_users' }, payload => {
+                    console.log('[AuthManager] Realtime Postgres change detected:', payload.eventType);
+                    this.syncWithCloud();
+                })
+                .subscribe();
+        } catch (e) {
+            console.warn('[AuthManager] Realtime subscription error:', e);
+        }
+    }
+
+    // ==========================================
+    // LOCAL STORAGE USER PERSISTENCE & BLACKLIST
+    // ==========================================
     getDeletedUserEmails() {
         try {
             const raw = localStorage.getItem(DELETED_USERS_STORAGE_KEY) || sessionStorage.getItem(DELETED_USERS_STORAGE_KEY);
@@ -270,59 +442,87 @@ class AuthManager {
             details: details,
             timestamp: new Date().toISOString()
         };
+
         logs.unshift(newLog);
-        // Keep last 1,000 logs
-        if (logs.length > 1000) logs.pop();
+        if (logs.length > 500) logs.pop();
         this.saveLogs(logs);
+
+        // Supabase Cloud Activity Log Insertion
+        if (this.supabase) {
+            this.supabase.from('app_activity_logs').insert({
+                id: newLog.id,
+                user_id: newLog.userId,
+                user_name: newLog.userName,
+                user_email: newLog.userEmail,
+                role: newLog.role,
+                activity_type: newLog.activityType,
+                section: newLog.section,
+                target_ref: newLog.targetRef,
+                details: newLog.details,
+                timestamp: newLog.timestamp
+            }).then(({ error }) => {
+                if (error) console.warn('[AuthManager] Supabase logActivity error:', error.message);
+            });
+        }
+
         return newLog;
     }
 
-    login(email, password, remember = true) {
-        const cleanEmail = (email || '').trim().toLowerCase();
+    // ==========================================
+    // AUTHENTICATION & SESSIONS
+    // ==========================================
+    login(identifier, password, rememberMe = false) {
+        const cleanId = (identifier || '').trim().toLowerCase();
         const cleanPass = (password || '').trim();
 
-        if (!cleanEmail || !cleanPass) {
-            return { success: false, error: 'Email and password are required.' };
+        if (!cleanId || !cleanPass) {
+            return { success: false, error: 'Please enter both username/email and password.' };
         }
 
         const users = this.getUsers();
-        const user = users.find(u => 
-            u.email.toLowerCase() === cleanEmail || 
-            (u.username && u.username.toLowerCase() === cleanEmail)
+        const user = users.find(u =>
+            (u.email && u.email.toLowerCase() === cleanId) ||
+            (u.username && u.username.toLowerCase() === cleanId)
         );
 
         if (!user) {
-            this.logActivity('LOGIN_FAILED', 'Authentication', cleanEmail, 'Invalid email or username entered');
-            return { success: false, error: 'No account found with this email address or username.' };
+            this.logActivity('LOGIN_FAILED', 'Authentication', cleanId, 'User not found');
+            return { success: false, error: 'Invalid username/email or password.' };
         }
 
         if (user.status === 'disabled') {
-            this.logActivity('LOGIN_FAILED', 'Authentication', cleanEmail, 'Attempted login to disabled account');
-            return { success: false, error: 'This account has been disabled by an administrator. Please contact your admin.' };
+            this.logActivity('LOGIN_REJECTED', 'Authentication', user.email, 'Account disabled');
+            return { success: false, error: 'This account has been disabled by the system administrator. Please contact admin.' };
         }
 
         if (user.passwordHash !== cleanPass) {
-            this.logActivity('LOGIN_FAILED', 'Authentication', cleanEmail, 'Incorrect password entered');
-            return { success: false, error: 'Incorrect password. Please verify your credentials and try again.' };
+            this.logActivity('LOGIN_FAILED', 'Authentication', user.email, 'Password mismatch');
+            return { success: false, error: 'Invalid username/email or password.' };
         }
 
-        // Update last login
         user.lastLogin = new Date().toISOString();
         this.saveUsers(users);
+
+        // Push last login timestamp to Supabase if connected
+        if (this.supabase) {
+            this.supabase.from('app_users').update({ last_login: user.lastLogin }).eq('id', user.id).then(() => {});
+        }
 
         const sessionData = {
             user: {
                 id: user.id,
                 fullName: user.fullName,
+                username: user.username,
                 email: user.email,
-                role: user.role,
-                status: user.status
+                role: user.role
             },
-            token: 'tok_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-            expiresAt: Date.now() + (remember ? (7 * 24 * 60 * 60 * 1000) : (12 * 60 * 60 * 1000)) // 7 days or 12 hours
+            token: 'auth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            rememberMe: rememberMe,
+            loginTime: Date.now(),
+            expiresAt: Date.now() + (rememberMe ? 30 * 86400000 : 86400000)
         };
 
-        if (remember) {
+        if (rememberMe) {
             localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionData));
         } else {
             sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionData));
@@ -370,17 +570,16 @@ class AuthManager {
             window.location.href = `login.html?redirect=${encodeURIComponent(currentPath)}`;
             return null;
         }
+        return session.user;
+    }
 
-        // Check if user status was disabled while logged in
-        const users = this.getUsers();
-        const freshUser = users.find(u => u.id === session.user.id);
-        if (!freshUser || freshUser.status === 'disabled') {
-            alert('Your account has been disabled by an administrator.');
-            this.logout();
-            return null;
+    hasRole(requiredRoles) {
+        const user = this.getCurrentUser();
+        if (!user) return false;
+        if (!Array.isArray(requiredRoles)) {
+            requiredRoles = [requiredRoles];
         }
-
-        return freshUser;
+        return requiredRoles.includes(user.role);
     }
 
     isAdmin() {
@@ -388,10 +587,12 @@ class AuthManager {
         return user && user.role === 'admin';
     }
 
-    // Admin User Management functions
+    // ==========================================
+    // ADMIN USER MANAGEMENT FUNCTIONS
+    // ==========================================
     addUser(fullName, email, password, role) {
         if (!this.isAdmin()) return { success: false, error: 'Unauthorized: Admin privilege required' };
-        
+
         const cleanEmail = (email || '').trim().toLowerCase();
         if (!cleanEmail) return { success: false, error: 'Email address is required.' };
         const cleanName = (fullName || '').trim();
@@ -422,6 +623,28 @@ class AuthManager {
         users.push(newUser);
         this.saveUsers(users);
         this.logActivity('USER_MGMT', 'User Management', cleanEmail, `Created user ${newUser.fullName} with role ${newUser.role}`);
+
+        // Push new user to Supabase Cloud Database
+        if (this.supabase) {
+            this.supabase.from('app_users').insert({
+                id: newUser.id,
+                full_name: newUser.fullName,
+                username: newUser.username,
+                email: newUser.email,
+                password_hash: newUser.passwordHash,
+                role: newUser.role,
+                status: newUser.status,
+                created_at: newUser.createdAt,
+                last_login: null
+            }).then(({ error }) => {
+                if (error) console.error('[AuthManager] Supabase addUser error:', error);
+            });
+        }
+
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('dashboard_users_changed', { detail: { action: 'add', user: newUser } }));
+        }
+
         return { success: true, user: newUser };
     }
 
@@ -435,6 +658,11 @@ class AuthManager {
         user.role = newRole;
         this.saveUsers(users);
         this.logActivity('USER_MGMT', 'User Management', user.email, `Changed role from ${oldRole} to ${newRole}`);
+
+        if (this.supabase) {
+            this.supabase.from('app_users').update({ role: newRole }).eq('id', userId).then(() => {});
+        }
+
         return { success: true };
     }
 
@@ -453,6 +681,17 @@ class AuthManager {
         user.status = user.status === 'active' ? 'disabled' : 'active';
         this.saveUsers(users);
         this.logActivity('USER_MGMT', 'User Management', user.email, `Set status to ${user.status.toUpperCase()}`);
+
+        if (this.supabase) {
+            this.supabase.from('app_users').update({ status: user.status }).eq('id', userId).then(({ error }) => {
+                if (error) console.error('[AuthManager] Supabase toggleStatus error:', error);
+            });
+        }
+
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('dashboard_users_changed', { detail: { action: 'toggle', user: user } }));
+        }
+
         return { success: true, status: user.status };
     }
 
@@ -465,26 +704,39 @@ class AuthManager {
         user.passwordHash = newPassword.trim();
         this.saveUsers(users);
         this.logActivity('USER_MGMT', 'User Management', user.email, 'Admin reset user password');
+
+        if (this.supabase) {
+            this.supabase.from('app_users').update({ password_hash: user.passwordHash }).eq('id', userId).then(() => {});
+        }
+
         return { success: true };
     }
 
-    editUser(userId, { fullName, email, role, password }) {
+    updateUser(userId, fullName, email, role, password) {
         if (!this.isAdmin()) return { success: false, error: 'Unauthorized: Admin privilege required' };
+
+        // Support both object syntax and positional arguments
+        if (fullName && typeof fullName === 'object') {
+            const data = fullName;
+            fullName = data.fullName;
+            email = data.email;
+            role = data.role;
+            password = data.password;
+        }
+
         const users = this.getUsers();
-        const user = users.find(u => u.id === userId);
+        const user = users.find(u => String(u.id) === String(userId));
         if (!user) return { success: false, error: 'User not found' };
 
         const cleanEmail = (email || '').trim().toLowerCase();
-        if (!cleanEmail) return { success: false, error: 'Email cannot be empty' };
-
-        if (cleanEmail !== user.email.toLowerCase()) {
-            if (users.some(u => u.id !== userId && u.email.toLowerCase() === cleanEmail)) {
-                return { success: false, error: 'A team member with this email already exists.' };
-            }
-        }
-
+        if (!cleanEmail) return { success: false, error: 'Email is required' };
         const cleanName = (fullName || '').trim();
-        if (!cleanName) return { success: false, error: 'Full name cannot be empty' };
+        if (!cleanName) return { success: false, error: 'Full name is required' };
+
+        const emailExists = users.some(u => String(u.id) !== String(userId) && u.email && u.email.toLowerCase() === cleanEmail);
+        if (emailExists) {
+            return { success: false, error: 'Another user already exists with this email address.' };
+        }
 
         const currentUser = this.getCurrentUser();
         if (currentUser && currentUser.id === userId && role !== 'admin') {
@@ -520,7 +772,30 @@ class AuthManager {
         }
 
         this.logActivity('USER_MGMT', 'User Management', user.email, `Admin updated user details for ${user.fullName} (${user.role.toUpperCase()})`);
+
+        if (this.supabase) {
+            const updatePayload = {
+                full_name: user.fullName,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            };
+            if (password && password.trim()) updatePayload.password_hash = user.passwordHash;
+
+            this.supabase.from('app_users').update(updatePayload).eq('id', userId).then(({ error }) => {
+                if (error) console.error('[AuthManager] Supabase updateUser error:', error);
+            });
+        }
+
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('dashboard_users_changed', { detail: { action: 'update', user: user } }));
+        }
+
         return { success: true, user };
+    }
+
+    editUser(userId, fullNameOrData, email, role, password) {
+        return this.updateUser(userId, fullNameOrData, email, role, password);
     }
 
     deleteUser(userId) {
@@ -548,6 +823,12 @@ class AuthManager {
         this.saveUsers(remainingUsers);
         this.logActivity('USER_MGMT', 'User Management', user.email, `Admin deleted user ${user.fullName} (${user.email})`);
 
+        if (this.supabase) {
+            this.supabase.from('app_users').delete().eq('id', userId).then(({ error }) => {
+                if (error) console.error('[AuthManager] Supabase deleteUser error:', error);
+            });
+        }
+
         if (typeof window !== 'undefined' && window.dispatchEvent) {
             window.dispatchEvent(new CustomEvent('dashboard_users_changed', { detail: { action: 'delete', userId: userId } }));
         }
@@ -560,6 +841,11 @@ class AuthManager {
         localStorage.removeItem(DELETED_USERS_STORAGE_KEY);
         this.saveUsers(INITIAL_USERS);
         this.logActivity('USER_MGMT', 'User Management', '', 'Admin restored default team accounts');
+
+        if (this.supabase) {
+            this.pushLocalUsersToCloud();
+        }
+
         return { success: true, users: INITIAL_USERS };
     }
 }
