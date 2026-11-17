@@ -153,27 +153,39 @@
 <body class="min-h-screen flex flex-col transition-colors duration-200">
 
     <!-- Top Navigation Header -->
-    <header class="app-card border-b sticky top-0 z-30 transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <header class="app-card border-b sticky top-0 z-30 transition-colors backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6">
             
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
-                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                                Widget Comparison & Status Dashboard
-                            </h1>
+            <div class="py-2.5 sm:py-0 sm:h-16 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+                <div class="flex items-center justify-between sm:justify-start gap-2.5">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 shrink-0">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                         </div>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
-                            Complete Comparison & Tracking across Excel, Repository & QA
-                        </p>
+                        <div class="min-w-0">
+                            <h1 class="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate">
+                                Widget Comparison & Status
+                            </h1>
+                            <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block truncate">
+                                Complete Comparison & Tracking across Excel, Repository & QA
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Action Buttons (Right-aligned next to logo on mobile) -->
+                    <div class="flex sm:hidden items-center gap-1.5 shrink-0">
+                        <button type="button" onclick="toggleThemeQuick()" title="Toggle Dark/Light Mode" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 transition flex items-center justify-center cursor-pointer shadow-sm">
+                            <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="exportCSV()" title="Export CSV" class="p-1.5 px-2 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-[11px] font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1">
+                            <i data-lucide="download" class="w-3 h-3"></i>
+                            <span>CSV</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-2.5">
+                <!-- Desktop Action Buttons -->
+                <div class="hidden sm:flex items-center gap-2 sm:gap-2.5">
                     
                     <!-- User Profile Pill (if logged in) -->
                     <div id="userProfilePill" class="app-subtle border rounded-lg px-2.5 py-1 text-xs items-center gap-2 hidden">
@@ -250,23 +262,23 @@
                 </div>
             </div>
 
-            <!-- Navigation Tabs -->
-            <div class="flex items-center gap-6 sm:gap-8 -mb-px pt-1 text-sm overflow-x-auto custom-scroll">
-                <button onclick="switchTab('overview')" id="tab-overview" class="nav-tab pb-2.5 font-medium border-b-2 border-blue-500 text-blue-500 dark:text-blue-400 transition whitespace-nowrap">
+            <!-- Navigation Tabs (Thumb-friendly on mobile) -->
+            <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-8 -mb-px pt-1 text-xs sm:text-sm">
+                <button onclick="switchTab('overview')" id="tab-overview" class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-blue-500 text-blue-500 dark:text-blue-400 transition whitespace-nowrap">
                     Overview
                 </button>
-                <button onclick="drillDown('all')" id="tab-inventory" class="nav-tab pb-2.5 font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap">
-                    All Widgets ( <span id="nav-tab-total">294</span> )
+                <button onclick="drillDown('all')" id="tab-inventory" class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap">
+                    All Widgets (<span id="nav-tab-total">294</span>)
                 </button>
-                <button onclick="switchTab('docs')" id="tab-docs" class="nav-tab pb-2.5 font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
+                <button onclick="switchTab('docs')" id="tab-docs" class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
                     Documentation
                 </button>
 
                 <!-- Admin Tabs -->
-                <button onclick="switchTab('users')" id="tab-users" class="nav-tab pb-2.5 font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
+                <button onclick="switchTab('users')" id="tab-users" class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
                     User Management
                 </button>
-                <button onclick="switchTab('activity')" id="tab-activity" class="nav-tab pb-2.5 font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
+                <button onclick="switchTab('activity')" id="tab-activity" class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
                     Activity History
                 </button>
             </div>
@@ -291,161 +303,236 @@
         <!-- ======================================================== -->
         <!-- SECTION 1: OVERVIEW & COMPARISON ANALYTICS               -->
         <!-- ======================================================== -->
-        <div id="view-overview" class="view-content space-y-5 sm:space-y-6">
+        <div id="view-overview" class="view-content space-y-4 sm:space-y-6">
 
-            <!-- 1. Key Performance Metrics (Top 6 KPI Cards) -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+            <!-- Mobile Executive Summary Bento (Visible on mobile screens < 640px) -->
+            <div class="sm:hidden app-card border border-blue-500/20 rounded-2xl p-4 shadow-sm bg-gradient-to-b from-blue-500/[0.04] to-transparent space-y-3.5">
+                <!-- Status Row -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 dark:text-white">Curriculum Status</div>
+                            <div class="text-[10px] text-slate-500">294 Expected Widgets</div>
+                        </div>
+                    </div>
+                    <span onclick="drillDown('matched_all')" class="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 cursor-pointer active:scale-95 transition">
+                        87.8% Ready
+                    </span>
+                </div>
 
-                <!-- KPI 1: Expected Widgets -->
-                <div id="card-kpi-total" onclick="drillDown('all')"
-                    class="kpi-card app-card border border-t-[3px] border-t-blue-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-blue-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
-                    title="Click to view all 294 required widgets in All Widgets">
-                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">Expected Widgets</span>
-                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-blue-500 shrink-0"></i>
+                <!-- Overall Progress Bar Card -->
+                <div class="p-3 rounded-xl bg-white/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                    <div class="flex items-center justify-between text-xs font-semibold">
+                        <span class="text-slate-700 dark:text-slate-300">Overall Production Ready</span>
+                        <span class="text-emerald-600 dark:text-emerald-400 font-mono font-bold cursor-pointer hover:underline" onclick="drillDown('matched_all')">258 / 294</span>
                     </div>
-                    <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-baseline gap-1">
-                        <span>294</span>
-                        <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">Required</span>
-                    </div>
-                    <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
-                        <span>100% Curriculum Scope</span>
+                    <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-teal-500 to-emerald-500 h-2.5 rounded-full" style="width: 87.8%"></div>
                     </div>
                 </div>
 
-                <!-- KPI 2: Developed in Repo -->
-                <div id="card-kpi-present" onclick="drillDown('source_present')"
-                    class="kpi-card app-card border border-t-[3px] border-t-teal-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-teal-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
-                    title="Click to filter 273 widgets verified in repository">
-                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="font-semibold text-teal-700 dark:text-teal-400 group-hover:text-teal-500 truncate">Developed in Repo</span>
-                        <i data-lucide="folder-check" class="w-3.5 h-3.5 text-teal-500 shrink-0"></i>
+                <!-- 2x2 High-Impact Metric Tiles -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div onclick="drillDown('source_present')" class="p-3 rounded-xl border border-teal-500/25 bg-teal-500/[0.06] cursor-pointer active:scale-95 transition">
+                        <div class="text-[10px] font-semibold text-teal-700 dark:text-teal-400 uppercase tracking-wider">Developed</div>
+                        <div class="text-lg font-bold text-teal-600 dark:text-teal-400 mt-0.5">273 <span class="text-[10px] font-normal text-slate-400">(92.9%)</span></div>
+                        <div class="text-[10px] text-slate-500">Verified on disk</div>
                     </div>
-                    <div class="text-xl sm:text-2xl font-bold text-teal-600 dark:text-teal-400 flex items-baseline gap-1">
-                        <span id="stat-present-both">273</span>
-                        <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(92.9%)</span>
+                    <div onclick="drillDown('matched_all')" class="p-3 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] cursor-pointer active:scale-95 transition">
+                        <div class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">In QA</div>
+                        <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">258 <span class="text-[10px] font-normal text-slate-400">(87.8%)</span></div>
+                        <div class="text-[10px] text-slate-500">Validated in catalog</div>
                     </div>
-                    <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
-                        <span>Verified Files on Disk</span>
+                    <div onclick="drillDown('requires_dev')" class="p-3 rounded-xl border border-rose-500/25 bg-rose-500/[0.06] cursor-pointer active:scale-95 transition">
+                        <div class="text-[10px] font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Dev Backlog</div>
+                        <div class="text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5">12 <span class="text-[10px] font-normal text-slate-400">(4.1%)</span></div>
+                        <div class="text-[10px] text-slate-500">Requires coding</div>
                     </div>
-                </div>
-
-                <!-- KPI 3: Validated in QA -->
-                <div id="card-kpi-qa" onclick="drillDown('matched_all')"
-                    class="kpi-card app-card border border-t-[3px] border-t-emerald-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-emerald-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
-                    title="Click to view 258 verified widgets in All Widgets">
-                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="font-semibold text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-500 truncate">Validated in QA</span>
-                        <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
-                    </div>
-                    <div class="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 flex items-baseline gap-1">
-                        <span id="stat-qa-tools">258</span>
-                        <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(87.8%)</span>
-                    </div>
-                    <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
-                        <span>Verified in QA Catalog</span>
+                    <div onclick="drillDown('missing_qa')" class="p-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] cursor-pointer active:scale-95 transition">
+                        <div class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">QA Gap</div>
+                        <div class="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">15 <span class="text-[10px] font-normal text-slate-400">(5.1%)</span></div>
+                        <div class="text-[10px] text-slate-500">Ready for ingestion</div>
                     </div>
                 </div>
 
-                <!-- KPI 4: Matched in All 3 Sources -->
-                <div id="card-kpi-matched-all" onclick="drillDown('matched_all')"
-                    class="kpi-card app-card border border-t-[3px] border-t-indigo-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-indigo-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
-                    title="Click to view 258 production ready widgets">
-                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="font-semibold text-indigo-700 dark:text-indigo-400 group-hover:text-indigo-500 truncate">Matched in All 3</span>
-                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-indigo-500 shrink-0"></i>
-                    </div>
-                    <div class="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 flex items-baseline gap-1">
-                        <span>258</span>
-                        <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(87.8%)</span>
-                    </div>
-                    <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
-                        <span>Excel ∩ Repo ∩ QA</span>
-                    </div>
+                <!-- Horizontal Quick Filters Rail -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scroll text-[11px] whitespace-nowrap">
+                    <span onclick="drillDown('extra_repo')" class="px-2.5 py-1 rounded-lg border border-purple-500/25 bg-purple-500/10 text-purple-600 dark:text-purple-400 font-medium cursor-pointer active:scale-95 transition">
+                        +46 Extra in Repo
+                    </span>
+                    <span onclick="drillDown('whiteboard')" class="px-2.5 py-1 rounded-lg border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer active:scale-95 transition">
+                        9 Canvas Tools
+                    </span>
+                    <span onclick="drillDown('naming_issues')" class="px-2.5 py-1 rounded-lg border border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-400 font-medium cursor-pointer active:scale-95 transition">
+                        7 Name Diffs
+                    </span>
+                    <span onclick="drillDown('investigation')" class="px-2.5 py-1 rounded-lg border border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-medium cursor-pointer active:scale-95 transition">
+                        6 Review Items
+                    </span>
                 </div>
-
-                <!-- KPI 5: Missing in QA -->
-                <div id="card-kpi-missing-qa" onclick="drillDown('missing_qa')"
-                    class="kpi-card app-card border border-t-[3px] border-t-amber-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-amber-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
-                    title="Click to view 15 widgets developed but missing from QA">
-                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="font-semibold text-amber-700 dark:text-amber-400 group-hover:text-amber-500 truncate">Missing in QA</span>
-                        <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
-                    </div>
-                    <div class="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-baseline gap-1">
-                        <span>15</span>
-                        <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(5.1%)</span>
-                    </div>
-                    <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
-                        <span>Needs QA Ingestion</span>
-                    </div>
-                </div>
-
-                <!-- KPI 6: Pending Development -->
-                <div id="card-kpi-pending-dev" onclick="drillDown('requires_dev')"
-                    class="kpi-card app-card border border-t-[3px] border-t-rose-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-rose-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
-                    title="Click to view 12 widgets pending development">
-                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="font-semibold text-rose-700 dark:text-rose-400 group-hover:text-rose-500 truncate">Needs Development</span>
-                        <i data-lucide="hammer" class="w-3.5 h-3.5 text-rose-500 shrink-0"></i>
-                    </div>
-                    <div class="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400 flex items-baseline gap-1">
-                        <span>12</span>
-                        <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(4.1%)</span>
-                    </div>
-                    <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
-                        <span>Net-New Code Backlog</span>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- 2. Secondary Metrics Strip -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
-                
-                <div onclick="drillDown('source_missing')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-rose-500 transition flex items-center justify-between group" title="Click to view 21 widgets missing from repo">
-                    <div>
-                        <div class="text-[10px] uppercase font-semibold text-rose-600 dark:text-rose-400 tracking-wider group-hover:underline">Missing from Repo</div>
-                        <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">21 Widgets</div>
-                        <div class="text-[10px] text-slate-500">12 Dev + 9 Canvas Tools</div>
+            <!-- Desktop & Tablet Metrics Container (Hidden on small mobile phones < 640px) -->
+            <div class="hidden sm:block space-y-5 sm:space-y-6">
+
+                <!-- 1. Key Performance Metrics (Top 6 KPI Cards) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+
+                    <!-- KPI 1: Expected Widgets -->
+                    <div id="card-kpi-total" onclick="drillDown('all')"
+                        class="kpi-card app-card border border-t-[3px] border-t-blue-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-blue-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
+                        title="Click to view all 294 required widgets in All Widgets">
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">Expected Widgets</span>
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-blue-500 shrink-0"></i>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-baseline gap-1">
+                            <span>294</span>
+                            <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">Required</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                            <span>100% Curriculum Scope</span>
+                        </div>
                     </div>
-                    <i data-lucide="file-x" class="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 shrink-0 group-hover:scale-110 transition-transform"></i>
+
+                    <!-- KPI 2: Developed in Repo -->
+                    <div id="card-kpi-present" onclick="drillDown('source_present')"
+                        class="kpi-card app-card border border-t-[3px] border-t-teal-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-teal-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
+                        title="Click to filter 273 widgets verified in repository">
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                            <span class="font-semibold text-teal-700 dark:text-teal-400 group-hover:text-teal-500 truncate">Developed in Repo</span>
+                            <i data-lucide="folder-check" class="w-3.5 h-3.5 text-teal-500 shrink-0"></i>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-bold text-teal-600 dark:text-teal-400 flex items-baseline gap-1">
+                            <span id="stat-present-both">273</span>
+                            <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(92.9%)</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                            <span>Verified Files on Disk</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: Validated in QA -->
+                    <div id="card-kpi-qa" onclick="drillDown('matched_all')"
+                        class="kpi-card app-card border border-t-[3px] border-t-emerald-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-emerald-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
+                        title="Click to view 258 verified widgets in All Widgets">
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                            <span class="font-semibold text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-500 truncate">Validated in QA</span>
+                            <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 flex items-baseline gap-1">
+                            <span id="stat-qa-tools">258</span>
+                            <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(87.8%)</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                            <span>Verified in QA Catalog</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4: Matched in All 3 Sources -->
+                    <div id="card-kpi-matched-all" onclick="drillDown('matched_all')"
+                        class="kpi-card app-card border border-t-[3px] border-t-indigo-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-indigo-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
+                        title="Click to view 258 production ready widgets">
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                            <span class="font-semibold text-indigo-700 dark:text-indigo-400 group-hover:text-indigo-500 truncate">Matched in All 3</span>
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-indigo-500 shrink-0"></i>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 flex items-baseline gap-1">
+                            <span>258</span>
+                            <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(87.8%)</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                            <span>Excel ∩ Repo ∩ QA</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 5: Missing in QA -->
+                    <div id="card-kpi-missing-qa" onclick="drillDown('missing_qa')"
+                        class="kpi-card app-card border border-t-[3px] border-t-amber-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-amber-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
+                        title="Click to view 15 widgets developed but missing from QA">
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                            <span class="font-semibold text-amber-700 dark:text-amber-400 group-hover:text-amber-500 truncate">Missing in QA</span>
+                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-baseline gap-1">
+                            <span>15</span>
+                            <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(5.1%)</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                            <span>Needs QA Ingestion</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 6: Pending Development -->
+                    <div id="card-kpi-pending-dev" onclick="drillDown('requires_dev')"
+                        class="kpi-card app-card border border-t-[3px] border-t-rose-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-rose-500 group shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-200"
+                        title="Click to view 12 widgets pending development">
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                            <span class="font-semibold text-rose-700 dark:text-rose-400 group-hover:text-rose-500 truncate">Needs Development</span>
+                            <i data-lucide="hammer" class="w-3.5 h-3.5 text-rose-500 shrink-0"></i>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400 flex items-baseline gap-1">
+                            <span>12</span>
+                            <span class="text-[10px] sm:text-[11px] font-normal text-slate-400">(4.1%)</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                            <span>Net-New Code Backlog</span>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div onclick="drillDown('whiteboard')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-indigo-500 transition flex items-center justify-between group" title="Click to view 9 classroom tools">
-                    <div>
-                        <div class="text-[10px] uppercase font-semibold text-indigo-600 dark:text-indigo-400 tracking-wider group-hover:underline">Classroom Tools</div>
-                        <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">9 Canvas</div>
-                        <div class="text-[10px] text-slate-500">Shared Whiteboard UI</div>
+                <!-- 2. Secondary Metrics Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
+                    
+                    <div onclick="drillDown('source_missing')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-rose-500 transition flex items-center justify-between group" title="Click to view 21 widgets missing from repo">
+                        <div>
+                            <div class="text-[10px] uppercase font-semibold text-rose-600 dark:text-rose-400 tracking-wider group-hover:underline">Missing from Repo</div>
+                            <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">21 Widgets</div>
+                            <div class="text-[10px] text-slate-500">12 Dev + 9 Canvas Tools</div>
+                        </div>
+                        <i data-lucide="file-x" class="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 shrink-0 group-hover:scale-110 transition-transform"></i>
                     </div>
-                    <i data-lucide="presentation" class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0 group-hover:scale-110 transition-transform"></i>
-                </div>
 
-                <div onclick="drillDown('extra_repo')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-purple-500 transition flex items-center justify-between group" title="Click to view 46 extra simulations in repo">
-                    <div>
-                        <div class="text-[10px] uppercase font-semibold text-purple-600 dark:text-purple-400 tracking-wider group-hover:underline">Extra in Repository</div>
-                        <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">+46 Extra Assets</div>
-                        <div class="text-[10px] text-slate-500">Available on disk, not in sheet</div>
+                    <div onclick="drillDown('whiteboard')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-indigo-500 transition flex items-center justify-between group" title="Click to view 9 classroom tools">
+                        <div>
+                            <div class="text-[10px] uppercase font-semibold text-indigo-600 dark:text-indigo-400 tracking-wider group-hover:underline">Classroom Tools</div>
+                            <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">9 Canvas</div>
+                            <div class="text-[10px] text-slate-500">Shared Whiteboard UI</div>
+                        </div>
+                        <i data-lucide="presentation" class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0 group-hover:scale-110 transition-transform"></i>
                     </div>
-                    <i data-lucide="package-plus" class="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 shrink-0 group-hover:scale-110 transition-transform"></i>
-                </div>
 
-                <div onclick="drillDown('naming_issues')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-sky-500 transition flex items-center justify-between group" title="Click to view 7 name differences">
-                    <div>
-                        <div class="text-[10px] uppercase font-semibold text-sky-600 dark:text-sky-400 tracking-wider group-hover:underline">Name Differences</div>
-                        <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">7 Slight Variations</div>
-                        <div class="text-[10px] text-slate-500">Matched using name mapping</div>
+                    <div onclick="drillDown('extra_repo')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-purple-500 transition flex items-center justify-between group" title="Click to view 46 extra simulations in repo">
+                        <div>
+                            <div class="text-[10px] uppercase font-semibold text-purple-600 dark:text-purple-400 tracking-wider group-hover:underline">Extra in Repository</div>
+                            <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">+46 Extra Assets</div>
+                            <div class="text-[10px] text-slate-500">Available on disk, not in sheet</div>
+                        </div>
+                        <i data-lucide="package-plus" class="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 shrink-0 group-hover:scale-110 transition-transform"></i>
                     </div>
-                    <i data-lucide="spell-check" class="w-4 h-4 sm:w-5 sm:h-5 text-sky-500 shrink-0 group-hover:scale-110 transition-transform"></i>
-                </div>
 
-                <div onclick="drillDown('investigation')" class="col-span-2 sm:col-span-1 app-subtle border rounded-xl p-3 cursor-pointer hover:border-rose-500 transition flex items-center justify-between group" title="Click to view 6 items to review">
-                    <div>
-                        <div class="text-[10px] uppercase font-semibold text-rose-600 dark:text-rose-400 tracking-wider group-hover:underline">Needs Review</div>
-                        <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">6 Items to Verify</div>
-                        <div class="text-[10px] text-slate-500">2 duplicates (#25, #257) + 4 flag issues</div>
+                    <div onclick="drillDown('naming_issues')" class="app-subtle border rounded-xl p-3 cursor-pointer hover:border-sky-500 transition flex items-center justify-between group" title="Click to view 7 name differences">
+                        <div>
+                            <div class="text-[10px] uppercase font-semibold text-sky-600 dark:text-sky-400 tracking-wider group-hover:underline">Name Differences</div>
+                            <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">7 Slight Variations</div>
+                            <div class="text-[10px] text-slate-500">Matched using name mapping</div>
+                        </div>
+                        <i data-lucide="spell-check" class="w-4 h-4 sm:w-5 sm:h-5 text-sky-500 shrink-0 group-hover:scale-110 transition-transform"></i>
                     </div>
-                    <i data-lucide="search-code" class="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 shrink-0 group-hover:scale-110 transition-transform"></i>
+
+                    <div onclick="drillDown('investigation')" class="col-span-2 sm:col-span-1 app-subtle border rounded-xl p-3 cursor-pointer hover:border-rose-500 transition flex items-center justify-between group" title="Click to view 6 items to review">
+                        <div>
+                            <div class="text-[10px] uppercase font-semibold text-rose-600 dark:text-rose-400 tracking-wider group-hover:underline">Needs Review</div>
+                            <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">6 Items to Verify</div>
+                            <div class="text-[10px] text-slate-500">2 duplicates (#25, #257) + 4 flag issues</div>
+                        </div>
+                        <i data-lucide="search-code" class="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 shrink-0 group-hover:scale-110 transition-transform"></i>
+                    </div>
+
                 </div>
 
             </div>
@@ -522,14 +609,22 @@
                                 <p class="text-[11px] text-slate-500 dark:text-slate-400">Compare Expected vs Developed vs QA Available per curriculum subject</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 text-[10px] font-semibold text-slate-500 self-start sm:self-auto">
-                            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Expected</span>
-                            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-teal-500"></span> Developed</span>
-                            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> In QA</span>
+                        <div class="flex items-center justify-between sm:justify-end gap-2 text-[10px] font-semibold text-slate-500 w-full sm:w-auto">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Expected</span>
+                                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-teal-500"></span> Developed</span>
+                                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> In QA</span>
+                            </div>
+                            <span class="text-[10px] text-blue-600 dark:text-blue-400 sm:hidden flex items-center gap-0.5">
+                                <i data-lucide="chevrons-left-right" class="w-3 h-3"></i> Swipe
+                            </span>
                         </div>
                     </div>
-                    <div class="h-64 sm:h-72 w-full">
-                        <canvas id="subjectBarChart"></canvas>
+                    <!-- Responsive Horizontally-Scrollable Container for Mobile -->
+                    <div class="overflow-x-auto custom-scroll pb-1">
+                        <div class="h-64 sm:h-72 min-w-[560px] sm:min-w-0 w-full">
+                            <canvas id="subjectBarChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -548,7 +643,7 @@
                         <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold cursor-pointer hover:underline" onclick="drillDown('all')">340 Total</span>
                     </div>
 
-                    <div class="h-56 sm:h-60 flex items-center justify-center relative my-1">
+                    <div class="h-52 sm:h-60 flex items-center justify-center relative my-1">
                         <canvas id="reconciliationDonutChart"></canvas>
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                             <span class="text-2xl font-bold text-slate-900 dark:text-white" id="donutCenterNumber">258</span>
@@ -1299,7 +1394,7 @@
                 </div>
             </div>
 
-            <!-- 6. 3-Way Source Comparison Table -->
+            <!-- 6. 3-Way Source Comparison -->
             <div class="app-card border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-3">
                     <div>
@@ -1317,7 +1412,153 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto custom-scroll">
+                <!-- Mobile Cards for 3-Way Comparison (Shown on mobile devices) -->
+                <div class="block md:hidden space-y-2.5">
+                    
+                    <!-- 1. Matched in All 3 -->
+                    <div onclick="drillDown('matched_all')" class="app-subtle border rounded-xl p-3.5 space-y-2 cursor-pointer hover:border-emerald-500 active:scale-98 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">Matched in All 3 Sources</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">258</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                            Fully verified across Excel list, Repository files, and QA catalog. Production ready.
+                        </p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px]">
+                            <span class="font-mono text-slate-500">Excel ∩ Repo ∩ QA</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-semibold group-hover:underline">View 258 widgets →</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Extra in Repo -->
+                    <div onclick="drillDown('extra_repo')" class="app-subtle border rounded-xl p-3.5 space-y-2 cursor-pointer hover:border-purple-500 active:scale-98 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                                    <i data-lucide="package-plus" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">Extra in Repository</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">+46</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                            46 runnable HTML simulations in repo not listed in the 294 master curriculum spreadsheet.
+                        </p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px]">
+                            <span class="font-mono text-slate-500">Repo - Excel</span>
+                            <span class="text-purple-600 dark:text-purple-400 font-semibold group-hover:underline">View 46 widgets →</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Missing in Repo -->
+                    <div onclick="drillDown('source_missing')" class="app-subtle border rounded-xl p-3.5 space-y-2 cursor-pointer hover:border-rose-500 active:scale-98 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                    <i data-lucide="folder-x" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">Present in Excel, Missing in Repo</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">21</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                            21 widgets without repo folders: 12 require frontend coding, 9 are classroom whiteboard tools.
+                        </p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px]">
+                            <span class="font-mono text-slate-500">Excel - Repo</span>
+                            <span class="text-rose-600 dark:text-rose-400 font-semibold group-hover:underline">View 21 widgets →</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Missing in QA -->
+                    <div onclick="drillDown('missing_qa')" class="app-subtle border rounded-xl p-3.5 space-y-2 cursor-pointer hover:border-amber-500 active:scale-98 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">Developed, Missing from QA</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">15</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                            15 widgets developed on disk that lack registered testing profiles in the Gold QA catalog.
+                        </p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px]">
+                            <span class="font-mono text-slate-500">(Excel ∩ Repo) - QA</span>
+                            <span class="text-amber-600 dark:text-amber-400 font-semibold group-hover:underline">View 15 widgets →</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Name Differences -->
+                    <div onclick="drillDown('naming_issues')" class="app-subtle border rounded-xl p-3.5 space-y-2 cursor-pointer hover:border-sky-500 active:scale-98 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                                    <i data-lucide="spell-check" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">Name Differences Across Sources</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">7</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                            7 widgets with minor title variations mapped to repository folder names.
+                        </p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px]">
+                            <span class="font-mono text-slate-500">Alias Mapping</span>
+                            <span class="text-sky-600 dark:text-sky-400 font-semibold group-hover:underline">View 7 widgets →</span>
+                        </div>
+                    </div>
+
+                    <!-- 6. Duplicates -->
+                    <div onclick="drillDown('investigation')" class="app-subtle border rounded-xl p-3.5 space-y-2 cursor-pointer hover:border-slate-500 active:scale-98 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-slate-500/10 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">Potential Duplicates in Excel</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">2</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                            2 duplicate rows marked as Repeated in master curriculum sheet (#25, #257).
+                        </p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px]">
+                            <span class="font-mono text-slate-500">Excel Internal</span>
+                            <span class="text-slate-600 dark:text-slate-400 font-semibold group-hover:underline">View 2 widgets →</span>
+                        </div>
+                    </div>
+
+                    <!-- 7. Needs Review -->
+                    <div onclick="drillDown('investigation')" class="app-subtle border rounded-xl p-3.5 space-y-2 cursor-pointer hover:border-rose-500 active:scale-98 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                    <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">Records Needing Review</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">6</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                            6 administrative review items: 2 duplicate rows + 4 flag issues in master sheet.
+                        </p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800 text-[10px]">
+                            <span class="font-mono text-slate-500">Verification</span>
+                            <span class="text-rose-600 dark:text-rose-400 font-semibold group-hover:underline">View 6 widgets →</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Desktop Table View (Hidden on mobile) -->
+                <div class="hidden md:block overflow-x-auto custom-scroll">
                     <table class="w-full text-left text-xs">
                         <thead>
                             <tr class="app-subtle border-b text-slate-600 dark:text-slate-400 font-medium">
@@ -1676,9 +1917,16 @@
                 </select>
             </div>
 
-            <!-- Table with WG Number & Source File Confirmation Columns -->
+            <!-- Table & Mobile Card View Container -->
             <div class="app-card border rounded-lg overflow-hidden shadow-sm">
-                <div class="overflow-x-auto">
+                
+                <!-- Mobile Widget Cards List (Visible on phones < 768px) -->
+                <div id="widgetMobileCardsList" class="md:hidden divide-y divide-slate-200 dark:divide-slate-800">
+                    <!-- Injected dynamically via renderTable() -->
+                </div>
+
+                <!-- Desktop Data Table (Visible on md+ screens) -->
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead>
                             <tr class="app-subtle border-b text-slate-600 dark:text-slate-400 font-medium">
@@ -2068,7 +2316,7 @@
 
         <div class="pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <div class="text-[11px] text-slate-500">
-                Generated: <span class="font-mono">Nov 17, 2026, 03:17 PM</span> • Source: Widgets in CE Platinum cum Crystal.xlsx
+                Generated: <span class="font-mono">Nov 17, 2026, 03:28 PM</span> • Source: Widgets in CE Platinum cum Crystal.xlsx
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="copyStatusReport()"
@@ -15900,6 +16148,7 @@
 
         function renderTable() {
             const tbody = document.getElementById('widgetTableBody');
+            const mobileContainer = document.getElementById('widgetMobileCardsList');
             const total = filteredData.length;
             const totalPages = Math.ceil(total / pageSize) || 1;
             if (currentPage > totalPages) currentPage = totalPages;
@@ -15915,7 +16164,53 @@
 
             if (items.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-500">No widgets match the selected filters.</td></tr>';
+                if (mobileContainer) mobileContainer.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs">No widgets match the selected filters.</div>';
                 return;
+            }
+
+            // Render Mobile Cards View (Phones < 768px)
+            if (mobileContainer) {
+                mobileContainer.innerHTML = items.map(w => {
+                    const runUrl = w.live_html || ((w.status_category === 'available' || w.has_file) ? (w.component_html || w.repo_path || (w.excel_repo && w.excel_repo.startsWith('http') ? w.excel_repo : '')) : '');
+                    return `
+                    <div onclick="openModal(${w.sr})" class="p-3.5 space-y-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 active:bg-slate-100 dark:active:bg-slate-800 transition">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 font-mono text-[11px] truncate">
+                                <span class="text-slate-400 font-bold shrink-0">#${w.sr}</span>
+                                ${w.is_extra ? `
+                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">EXTRA</span>
+                                ` : (w.wg_code && w.wg_code !== '-' ? `
+                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">${w.wg_code}</span>
+                                ` : '')}
+                                <span class="text-[10px] text-slate-500 font-sans truncate">• ${w.is_extra ? 'Extra' : w.subject}</span>
+                            </div>
+                            <div class="shrink-0">${getStatusBadge(w.status_category, w.status_label, w)}</div>
+                        </div>
+
+                        <div class="font-medium text-xs text-slate-900 dark:text-white leading-snug">
+                            ${w.name}
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60 text-[11px]">
+                            <div class="flex items-center gap-1 text-[10px] text-slate-500">
+                                ${w.is_extra ? '<span class="text-purple-500 font-medium">Repo Extra</span>' : (w.excel_status === 'repo_found' ? '<span class="text-emerald-600 dark:text-emerald-400 font-medium">✓ In Excel</span>' : '<span class="text-amber-500">Excel: Not in repo</span>')}
+                                ${w.in_qa ? '<span class="px-1 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[9px] font-semibold">QA Ready</span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                ${runUrl ? `
+                                    <a href="${runUrl}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-600 text-white shadow-xs inline-flex items-center gap-1 active:scale-95 transition">
+                                        <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
+                                        <span>Run</span>
+                                    </a>
+                                ` : ''}
+                                <button onclick="openModal(${w.sr})" class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
             }
 
             tbody.innerHTML = items.map(w => {
