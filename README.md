@@ -46,19 +46,17 @@ widget-dashboard/
 
 ---
 
-## ⚡ Team Accounts & Passwords
+## 🔐 Access & Role Permissions
 
-You can sign in using **either** your registered Email address or your Username:
+Access to the dashboard is protected by Role-Based Access Control (RBAC). Authorized team members can sign in with their assigned accounts via the login portal (`login.html`). For account provisioning or credential assistance, please connect directly with the System Administrator.
 
-| Name | Role | Username | Email | Password |
-|---|---|---|---|---|
-| **Raj Shinde (GitHub Owner)** | **Admin** | `tce-rajs` | `raj.shinde@optimizeq.com` | `Raj@123` |
-| **Administrator** | **Admin** | `admin` | `admin@company.com` | `Admin@123` |
-| **Prasanna Sir** | **Admin** | `prasanna` | `prasanna@company.com` | `Prasanna@123` |
-| **Nitin** | **Developer** | `nitin` | `nitin@company.com` | `Nitin@123` |
-| **Content Team** | **Content** | `content` | `content@company.com` | `Content@123` |
-| **QA Team** | **QA** | `qa` | `qa@company.com` | `Qa@123` |
-| **Viewer** | **Viewer** | `viewer` | `viewer@company.com` | `Viewer@123` |
+| Role | Permissions & Access Scope |
+|---|---|
+| **Admin** | Full system control: curriculum tracking, live Excel update/sync, team user management, activity history, and cloud database configuration. |
+| **Developer** | Repository codebase audit, simulation code review, documentation, and Excel export. |
+| **Content** | Curriculum reconciliation, widget content evaluation, documentation, and Excel export. |
+| **QA** | Delivery readiness verification, QA tracking, documentation, and Excel export. |
+| **Viewer** | Read-only access to overview metrics, curriculum catalog, and comparison tracking. |
 
 ---
 
