@@ -2333,7 +2333,7 @@
 
         <div class="pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <div class="text-[11px] text-slate-500">
-                Generated: <span class="font-mono">Nov 17, 2026, 03:37 PM</span> • Source: Widgets in CE Platinum cum Crystal.xlsx
+                Generated: <span class="font-mono">Nov 17, 2026, 03:53 PM</span> • Source: Widgets in CE Platinum cum Crystal.xlsx
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="copyStatusReport()"
@@ -15938,6 +15938,8 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        let pendingDeleteUserId = null;
+
         function renderUsersTable() {
             if (typeof authManager === 'undefined') return;
             const users = authManager.getUsers();
@@ -15954,17 +15956,46 @@
             if (adminEl) adminEl.innerText = users.filter(u => u.role === 'admin').length;
             if (staffEl) staffEl.innerText = users.filter(u => u.role !== 'admin' && u.role !== 'viewer').length;
 
-            tbody.innerHTML = users.map(u => `
+            const currUser = authManager.getCurrentUser() || {};
+
+            tbody.innerHTML = users.map(u => {
+                const isSelf = String(u.id) === String(currUser.id) || 
+                               (u.email && currUser.email && u.email.toLowerCase() === currUser.email.toLowerCase()) ||
+                               (u.username && currUser.username && u.username.toLowerCase() === currUser.username.toLowerCase());
+                
+                const roleColors = {
+                    admin: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800',
+                    developer: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800',
+                    qa: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800',
+                    content: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800',
+                    viewer: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                };
+                const roleClass = roleColors[u.role] || roleColors.viewer;
+
+                return `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                     <td class="py-2.5 px-4">
-                        <div class="font-medium text-slate-900 dark:text-white">${u.fullName}</div>
-                        <div class="text-[11px] text-slate-400 font-mono">${u.email}</div>
-                    </td>
-                    <td class="py-2.5 px-4 font-mono text-[11px] uppercase font-bold text-blue-600 dark:text-blue-400">
-                        ${u.role}
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
+                                ${(u.fullName || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-medium text-slate-900 dark:text-white flex items-center gap-1.5">
+                                    <span class="truncate">${u.fullName || 'User'}</span>
+                                    ${isSelf ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold uppercase">You</span>' : ''}
+                                </div>
+                                <div class="text-[11px] text-slate-400 font-mono truncate">${u.email}</div>
+                            </div>
+                        </div>
                     </td>
                     <td class="py-2.5 px-4">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border border-slate-500/20'}">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase border ${roleClass}">
+                            ${u.role}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-4">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'}">
+                            <span class="w-1.5 h-1.5 rounded-full ${u.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
                             ${u.status}
                         </span>
                     </td>
@@ -15972,11 +16003,147 @@
                         ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
                     </td>
                     <td class="py-2.5 px-4 text-right">
-                        <span class="text-[11px] text-slate-400 font-medium">Active Member</span>
+                        <div class="inline-flex items-center gap-1 justify-end">
+                            <button onclick="openEditUserModal('${u.id}')" title="Edit user" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="toggleUserStatus('${u.id}')" title="${u.status === 'active' ? 'Disable account' : 'Activate account'}" class="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition" ${isSelf ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
+                                <i data-lucide="${u.status === 'active' ? 'user-x' : 'user-check'}" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="openDeleteUserModal('${u.id}')" title="Delete user" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition" ${isSelf ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
             if (window.lucide) lucide.createIcons();
+        }
+
+        function openAddUserModal() {
+            const modal = document.getElementById('addUserModal');
+            if (!modal) return;
+            document.getElementById('addUserName').value = '';
+            document.getElementById('addUserEmail').value = '';
+            document.getElementById('addUserRole').value = 'viewer';
+            document.getElementById('addUserPass').value = 'Widget2026!';
+            modal.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeAddUserModal() {
+            const modal = document.getElementById('addUserModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function handleSaveNewUser(e) {
+            e.preventDefault();
+            if (typeof authManager === 'undefined') return;
+            const name = document.getElementById('addUserName').value.trim();
+            const email = document.getElementById('addUserEmail').value.trim();
+            const role = document.getElementById('addUserRole').value;
+            const pass = document.getElementById('addUserPass').value.trim();
+
+            const res = authManager.addUser(name, email, pass, role);
+            if (res.success) {
+                closeAddUserModal();
+                renderUsersTable();
+                showToast(`User ${name} added successfully!`, 'success');
+            } else {
+                alert(res.error || 'Failed to create user');
+            }
+        }
+
+        function openEditUserModal(userId) {
+            if (typeof authManager === 'undefined') return;
+            const users = authManager.getUsers();
+            const user = users.find(u => String(u.id) === String(userId));
+            if (!user) return;
+
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUserName').value = user.fullName || '';
+            document.getElementById('editUserEmail').value = user.email || '';
+            document.getElementById('editUserRole').value = user.role || 'viewer';
+            document.getElementById('editUserPass').value = '';
+
+            const modal = document.getElementById('editUserModal');
+            if (modal) modal.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeEditUserModal() {
+            const modal = document.getElementById('editUserModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function handleSaveEditUser(e) {
+            e.preventDefault();
+            if (typeof authManager === 'undefined') return;
+            const id = document.getElementById('editUserId').value;
+            const name = document.getElementById('editUserName').value.trim();
+            const email = document.getElementById('editUserEmail').value.trim();
+            const role = document.getElementById('editUserRole').value;
+            const pass = document.getElementById('editUserPass').value.trim();
+
+            const res = authManager.editUser(id, { fullName: name, email, role, password: pass });
+            if (res.success) {
+                closeEditUserModal();
+                renderUsersTable();
+                initUserProfile();
+                showToast(`User details updated successfully!`, 'success');
+            } else {
+                alert(res.error || 'Failed to update user');
+            }
+        }
+
+        function toggleUserStatus(userId) {
+            if (typeof authManager === 'undefined') return;
+            const res = authManager.toggleUserStatus(userId);
+            if (res.success) {
+                renderUsersTable();
+                showToast(`User status updated to ${res.status.toUpperCase()}`, 'info');
+            } else {
+                alert(res.error || 'Failed to change status');
+            }
+        }
+
+        function openDeleteUserModal(userId) {
+            if (typeof authManager === 'undefined') return;
+            const users = authManager.getUsers();
+            const user = users.find(u => String(u.id) === String(userId));
+            if (!user) return;
+
+            pendingDeleteUserId = userId;
+            const nameEl = document.getElementById('deleteTargetName');
+            const emailEl = document.getElementById('deleteTargetEmail');
+            const roleEl = document.getElementById('deleteTargetRole');
+
+            if (nameEl) nameEl.innerText = user.fullName || 'User';
+            if (emailEl) emailEl.innerText = user.email || '';
+            if (roleEl) roleEl.innerText = `Role: ${(user.role || '').toUpperCase()}`;
+
+            const modal = document.getElementById('deleteUserModal');
+            if (modal) modal.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeDeleteUserModal() {
+            pendingDeleteUserId = null;
+            const modal = document.getElementById('deleteUserModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function confirmDeleteUser() {
+            if (!pendingDeleteUserId || typeof authManager === 'undefined') return;
+            const res = authManager.deleteUser(pendingDeleteUserId);
+            if (res.success) {
+                closeDeleteUserModal();
+                renderUsersTable();
+                showToast('User permanently removed', 'success');
+            } else {
+                alert(res.error || 'Failed to delete user');
+            }
         }
 
         function renderActivityTable() {
