@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Widget Comparison & Status Dashboard</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 6L39 15L24 24L9 15Z' fill='%2338bdf8'/%3E%3Cpath d='M9 15L24 24V42L9 33Z' fill='%232563eb'/%3E%3Cpath d='M24 24L39 15V33L24 42Z' fill='%236366f1'/%3E%3Ccircle cx='24' cy='24' r='3.5' fill='%23ffffff'/%3E%3C/svg%3E">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -14,7 +14,7 @@
     <!-- Chart.js for Modern Interactive Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Auth & Activity Manager -->
-    <script src="auth.js?v=2.6.0"></script>
+    <script src="auth.js?v=2.7.0"></script>
     <script>
         // Immediate Authentication Guard
         (function() {
@@ -173,8 +173,34 @@
             <div class="py-2.5 sm:py-0 sm:h-16 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
                 <div class="flex items-center justify-between sm:justify-start gap-2.5">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 shrink-0">
-                            <i data-lucide="bar-chart-3" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 border border-slate-700/80 p-1.5 shadow-md shadow-blue-500/10 flex items-center justify-center shrink-0">
+                            <svg class="w-full h-full" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="headerCwGradTop" x1="12" y1="6" x2="36" y2="24" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#38bdf8"/>
+                                        <stop offset="100%" stop-color="#2563eb"/>
+                                    </linearGradient>
+                                    <linearGradient id="headerCwGradLeft" x1="6" y1="20" x2="24" y2="42" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#1d4ed8"/>
+                                        <stop offset="100%" stop-color="#0f172a"/>
+                                    </linearGradient>
+                                    <linearGradient id="headerCwGradRight" x1="24" y1="20" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#6366f1"/>
+                                        <stop offset="100%" stop-color="#1e1b4b"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M24 6L39 15L24 24L9 15L24 6Z" fill="url(#headerCwGradTop)"/>
+                                <path d="M9 15L24 24V42L9 33V15Z" fill="url(#headerCwGradLeft)"/>
+                                <path d="M24 24L39 15V33L24 42V24Z" fill="url(#headerCwGradRight)"/>
+                                <path d="M24 6L24 24M9 15L24 24M39 15L24 24M24 24V42" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" stroke-linejoin="round"/>
+                                <circle cx="24" cy="24" r="3" fill="#ffffff"/>
+                                <circle cx="24" cy="6" r="2" fill="#38bdf8"/>
+                                <circle cx="39" cy="15" r="2" fill="#818cf8"/>
+                                <circle cx="39" cy="33" r="2" fill="#6366f1"/>
+                                <circle cx="24" cy="42" r="2" fill="#3b82f6"/>
+                                <circle cx="9" cy="33" r="2" fill="#2563eb"/>
+                                <circle cx="9" cy="15" r="2" fill="#38bdf8"/>
+                            </svg>
                         </div>
                         <div class="min-w-0">
                             <h1 class="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate">
@@ -2324,7 +2350,7 @@
             <h2 class="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <i data-lucide="users" class="w-4 h-4 text-blue-500"></i>
                 <span>Team User Management</span>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">v2.6 Live Actions</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">v2.7 Persistent State</span>
             </h2>
             <p class="text-xs text-slate-500 dark:text-slate-400">Manage authorized team members, roles, and dashboard
                 permissions.</p>
@@ -2542,7 +2568,7 @@
 
         <div class="pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <div class="text-[11px] text-slate-500">
-                Generated: <span class="font-mono">Nov 17, 2026, 04:12 PM</span> • Source: Widgets in CE Platinum cum Crystal.xlsx
+                Generated: <span class="font-mono">Nov 17, 2026, 04:25 PM</span> • Source: Widgets in CE Platinum cum Crystal.xlsx
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="copyStatusReport()"
@@ -16147,6 +16173,13 @@
             else if (tabId === 'users') renderUsersTable();
             else if (tabId === 'activity') renderActivityTable();
 
+            try {
+                sessionStorage.setItem('active_dashboard_tab', tabId);
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, '', '#' + tabId);
+                }
+            } catch {}
+
             if (typeof authManager !== 'undefined') {
                 authManager.logActivity('NAVIGATION', tabId.toUpperCase(), '', `Switched to ${tabId} tab`);
             }
@@ -17336,6 +17369,24 @@ Coverage: Dev ${devPct}% | QA ${qaPct}%
         initUserProfile();
         filterWidgets();
         initOverviewCharts();
+
+        // Warm up users table & stats for admin on load so data is instantly ready
+        if (currentUser && currentUser.role === 'admin') {
+            renderUsersTable();
+        }
+
+        // Restore active tab across page refresh / reload
+        try {
+            const hashTab = (window.location.hash || '').replace('#', '').trim();
+            const savedTab = sessionStorage.getItem('active_dashboard_tab');
+            const candidateTab = hashTab || savedTab;
+            if (candidateTab && ['overview', 'inventory', 'users', 'activity', 'docs'].includes(candidateTab)) {
+                if (candidateTab !== 'overview') {
+                    switchTab(candidateTab);
+                }
+            }
+        } catch {}
+
         lucide.createIcons();
 
         if (window.location.protocol === 'file:') {

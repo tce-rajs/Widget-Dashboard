@@ -137,7 +137,8 @@ class AuthManager {
 
     getDeletedUserEmails() {
         try {
-            return JSON.parse(localStorage.getItem(DELETED_USERS_STORAGE_KEY)) || [];
+            const raw = localStorage.getItem(DELETED_USERS_STORAGE_KEY) || sessionStorage.getItem(DELETED_USERS_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
         } catch {
             return [];
         }
@@ -148,59 +149,98 @@ class AuthManager {
         const clean = (email || '').trim().toLowerCase();
         if (clean && !list.includes(clean)) {
             list.push(clean);
-            localStorage.setItem(DELETED_USERS_STORAGE_KEY, JSON.stringify(list));
+            const json = JSON.stringify(list);
+            try { localStorage.setItem(DELETED_USERS_STORAGE_KEY, json); } catch {}
+            try { sessionStorage.setItem(DELETED_USERS_STORAGE_KEY, json); } catch {}
+        }
+    }
+
+    unmarkDeletedUserEmail(email) {
+        const list = this.getDeletedUserEmails();
+        const clean = (email || '').trim().toLowerCase();
+        if (clean) {
+            const filtered = list.filter(e => e !== clean);
+            const json = JSON.stringify(filtered);
+            try { localStorage.setItem(DELETED_USERS_STORAGE_KEY, json); } catch {}
+            try { sessionStorage.setItem(DELETED_USERS_STORAGE_KEY, json); } catch {}
         }
     }
 
     initUsers() {
         const deletedList = this.getDeletedUserEmails();
-        const stored = localStorage.getItem(USERS_STORAGE_KEY);
-        if (!stored) {
-            const filtered = INITIAL_USERS.filter(u => !deletedList.includes(u.email.toLowerCase()));
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(filtered));
+        let currentUsers = null;
+
+        try {
+            const stored = localStorage.getItem(USERS_STORAGE_KEY) || sessionStorage.getItem(USERS_STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    currentUsers = parsed;
+                }
+            }
+        } catch (e) {
+            console.warn('Error reading stored users, will initialize:', e);
+        }
+
+        if (!currentUsers) {
+            currentUsers = INITIAL_USERS.filter(u => u && u.email && !deletedList.includes(u.email.toLowerCase()));
+            this.saveUsers(currentUsers);
             return;
         }
-        try {
-            let currentUsers = JSON.parse(stored) || [];
-            currentUsers = currentUsers.filter(u => !deletedList.includes(u.email.toLowerCase()));
 
-            INITIAL_USERS.forEach(seed => {
-                if (deletedList.includes(seed.email.toLowerCase())) return;
-                const found = currentUsers.find(u => u.email.toLowerCase() === seed.email.toLowerCase());
-                if (!found) {
-                    currentUsers.push(seed);
-                } else {
-                    if (seed.username && found.username !== seed.username) {
-                        found.username = seed.username;
-                    }
-                    if (seed.passwordHash && found.passwordHash !== seed.passwordHash) {
-                        found.passwordHash = seed.passwordHash;
-                    }
-                }
-            });
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(currentUsers));
-        } catch {
-            const filtered = INITIAL_USERS.filter(u => !deletedList.includes(u.email.toLowerCase()));
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(filtered));
-        }
+        // If users already exist in storage, PRESERVE EVERY ONE OF THEM!
+        // Only inject any non-deleted initial seed users if they aren't already present in currentUsers
+        let modified = false;
+        INITIAL_USERS.forEach(seed => {
+            if (!seed || !seed.email) return;
+            const seedEmail = seed.email.toLowerCase();
+            if (deletedList.includes(seedEmail)) return; // explicitly deleted by admin
+            const exists = currentUsers.some(u => u && u.email && u.email.toLowerCase() === seedEmail);
+            if (!exists) {
+                currentUsers.push(seed);
+                modified = true;
+            }
+        });
+
+        // Ensure every user object has consistent fields (id, username, email, status)
+        currentUsers.forEach(u => {
+            if (u && u.email) {
+                if (!u.username) u.username = u.email.includes('@') ? u.email.split('@')[0] : u.email;
+                if (!u.status) u.status = 'active';
+            }
+        });
+
+        this.saveUsers(currentUsers);
     }
 
     initLogs() {
-        if (!localStorage.getItem(ACTIVITY_STORAGE_KEY)) {
-            localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(INITIAL_LOGS));
+        if (!localStorage.getItem(ACTIVITY_STORAGE_KEY) && !sessionStorage.getItem(ACTIVITY_STORAGE_KEY)) {
+            const json = JSON.stringify(INITIAL_LOGS);
+            try { localStorage.setItem(ACTIVITY_STORAGE_KEY, json); } catch {}
+            try { sessionStorage.setItem(ACTIVITY_STORAGE_KEY, json); } catch {}
         }
     }
 
     getUsers() {
         try {
-            return JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)) || INITIAL_USERS;
+            const raw = localStorage.getItem(USERS_STORAGE_KEY) || sessionStorage.getItem(USERS_STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
+            }
+            return INITIAL_USERS;
         } catch {
             return INITIAL_USERS;
         }
     }
 
     saveUsers(users) {
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+        if (!Array.isArray(users)) return;
+        const json = JSON.stringify(users);
+        try { localStorage.setItem(USERS_STORAGE_KEY, json); } catch (e) { console.warn('localStorage save failed', e); }
+        try { sessionStorage.setItem(USERS_STORAGE_KEY, json); } catch (e) { console.warn('sessionStorage save failed', e); }
     }
 
     getLogs() {
@@ -353,22 +393,31 @@ class AuthManager {
         if (!this.isAdmin()) return { success: false, error: 'Unauthorized: Admin privilege required' };
         
         const cleanEmail = (email || '').trim().toLowerCase();
+        if (!cleanEmail) return { success: false, error: 'Email address is required.' };
+        const cleanName = (fullName || '').trim();
+        if (!cleanName) return { success: false, error: 'Full name is required.' };
+
         const users = this.getUsers();
 
-        if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
+        if (users.some(u => u && u.email && u.email.toLowerCase() === cleanEmail)) {
             return { success: false, error: 'A team member with this email address already exists.' };
         }
 
+        const username = cleanEmail.includes('@') ? cleanEmail.split('@')[0] : cleanEmail;
         const newUser = {
-            id: 'usr_' + Date.now().toString(36),
-            fullName: fullName.trim(),
+            id: 'usr_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+            fullName: cleanName,
+            username: username,
             email: cleanEmail,
-            passwordHash: password.trim() || 'Welcome@123',
+            passwordHash: (password || '').trim() || 'Welcome@123',
             role: role || 'viewer',
             status: 'active',
             createdAt: new Date().toISOString(),
             lastLogin: null
         };
+
+        // Guarantee this email is unblacklisted so reload NEVER filters it out!
+        this.unmarkDeletedUserEmail(cleanEmail);
 
         users.push(newUser);
         this.saveUsers(users);
@@ -447,11 +496,13 @@ class AuthManager {
 
         user.fullName = cleanName;
         user.email = cleanEmail;
+        user.username = cleanEmail.includes('@') ? cleanEmail.split('@')[0] : cleanEmail;
         if (role) user.role = role;
         if (password && password.trim()) {
             user.passwordHash = password.trim();
         }
 
+        this.unmarkDeletedUserEmail(cleanEmail);
         this.saveUsers(users);
 
         if (currentUser && currentUser.id === userId) {
