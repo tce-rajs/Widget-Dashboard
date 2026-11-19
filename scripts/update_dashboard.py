@@ -132,34 +132,30 @@ def run_pipeline(excel_file=None, auto_push=False):
         html_content = f.read()
 
     m = re.search(r'let rawData = (\[.*?\]);\s*\n', html_content, re.DOTALL)
+    if not m:
+        m = re.search(r'const RAW_WIDGETS = (\[.*?\]);\s*\n', html_content, re.DOTALL)
     if m:
         unique_widgets = json.loads(m.group(1))
     else:
         unique_widgets = []
 
     total_w = len(unique_widgets)
-    statuses = Counter(w.get("status_category") for w in unique_widgets)
-    excel_st = Counter(w.get("excel_status") for w in unique_widgets)
-    present_on_disk = sum(1 for w in unique_widgets if w.get("has_file"))
-    live_sims = sum(1 for w in unique_widgets if w.get("live_html"))
+    if total_w > 0:
+        statuses = Counter(w.get("status_category") for w in unique_widgets)
+        excel_st = Counter(w.get("excel_status") for w in unique_widgets)
+        present_on_disk = sum(1 for w in unique_widgets if w.get("has_file", w.get("git", False)))
+        live_sims = sum(1 for w in unique_widgets if w.get("live_html", w.get("qa", False)))
 
-    print("-" * 65)
-    print("  1. EXCEL REFERENCE ANALYSIS (Spreadsheet Ground Truth):")
-    print(f"     Total Widgets in Sheet: {total_w}")
-    print(f"     Repo Found in Excel   : {excel_st.get('repo_found', 0)} ({(excel_st.get('repo_found', 0)/total_w)*100:.1f}%)")
-    print(f"     Repo Not Found ('No') : {excel_st.get('repo_not_found', 0)} ({(excel_st.get('repo_not_found', 0)/total_w)*100:.1f}%)")
-    print(f"     Repeated in Sheet     : {excel_st.get('repeated', 0)}")
-    print(f"     Widget Not Found      : {excel_st.get('not_found', 0)}")
-    print("-" * 65)
-    print("  2. CODEBASE AUDIT ANALYSIS (Repository Ground Truth):")
-    print(f"     Verified Files on Disk: {present_on_disk} ({(present_on_disk/total_w)*100:.1f}%)")
-    print(f"     Already Available     : {statuses.get('available', 0)}")
-    print(f"     Found via Mapping     : {statuses.get('corrected', 0)}")
-    print(f"     Small Changes Needed  : {statuses.get('minor_changes', 0)}")
-    print(f"     Classroom Tools       : {statuses.get('whiteboard', 0)}")
-    print(f"     Needs Development     : {statuses.get('requires_dev', 0)}")
-    print(f"     Live HTML Simulations : {live_sims}")
-    print("-" * 65)
+        print("-" * 65)
+        print("  1. EXCEL REFERENCE ANALYSIS (Spreadsheet Ground Truth):")
+        print(f"     Total Widgets in Sheet: {total_w}")
+        print(f"     Repo Found in Excel   : {excel_st.get('repo_found', 0)} ({(excel_st.get('repo_found', 0)/total_w)*100:.1f}%)" if 'repo_found' in excel_st else f"     Present in XL: {sum(1 for w in unique_widgets if w.get('xl'))}")
+        print("-" * 65)
+        print("  2. CODEBASE AUDIT ANALYSIS (Repository Ground Truth):")
+        print(f"     Verified Files on Disk: {present_on_disk} ({(present_on_disk/total_w)*100:.1f}%)")
+        print("-" * 65)
+    else:
+        print("      No widgets extracted from index.html report.")
 
     # Optional Git Push
     if auto_push:
