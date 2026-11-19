@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Comparison & Status Dashboard</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 6L39 15L24 24L9 15Z' fill='%2338bdf8'/%3E%3Cpath d='M9 15L24 24V42L9 33Z' fill='%232563eb'/%3E%3Cpath d='M24 24L39 15V33L24 42Z' fill='%236366f1'/%3E%3Ccircle cx='24' cy='24' r='3.5' fill='%23ffffff'/%3E%3C/svg%3E">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS for Client-Side Excel Auto-Parsing & Drag-and-Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js for Modern Interactive Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client & Cloud Sync Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_config.js?v=1.0.0"></script>
+    <!-- Auth & Activity Manager -->
+    <script src="auth.js?v=2.8.2"></script>
+    <script>
+        // Immediate Authentication Guard
+        (function () {
+            try {
+                const s = localStorage.getItem('widget_dashboard_auth_state_v1') || sessionStorage.getItem('widget_dashboard_auth_state_v1');
+                if (!s || !JSON.parse(s).user) {
+                    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+                    window.location.replace('login.html?redirect=' + encodeURIComponent(currentPath));
+                }
+            } catch (e) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-soft: #475569;
+        }
+
+        .dark {
+            --bg-page: #090d16;
+            --bg-card: #0f1626;
+            --bg-subtle: #151f33;
+            --border-color: #1e2c44;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-soft: #cbd5e1;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .app-card {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        }
+
+        .app-subtle {
+            background-color: var(--bg-subtle);
+            border-color: var(--border-color);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .dark .app-card {
+            background-color: #0f1626;
+            border-color: #1e2c44;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.55);
+        }
+
+        .dark .app-subtle {
+            background-color: #141d30;
+            border-color: #202e48;
+        }
+
+        .dark .app-subtle:hover {
+            background-color: #1a263d;
+            border-color: #2a3c5d;
+        }
+
+        .dark header {
+            background-color: rgba(13, 19, 32, 0.94) !important;
+            border-bottom-color: #1e2c44 !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .dark .kpi-card {
+            background: linear-gradient(180deg, #111a2d 0%, #0c1322 100%);
+            border: 1px solid #1e2c44;
+            position: relative;
+            z-index: 20;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .kpi-card {
+            position: relative;
+            z-index: 20;
+        }
+
+        .kpi-card:hover,
+        .kpi-card:focus-within {
+            z-index: 60 !important;
+        }
+
+        .kpi-popover {
+            z-index: 100 !important;
+        }
+
+        .dark .kpi-card:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(180deg, #19263e 0%, #0f182c 100%) !important;
+            z-index: 60 !important;
+        }
+
+        .dark #card-kpi-total:hover,
+        .dark #card-kpi-xl:hover {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.8), 0 0 18px -2px rgba(59, 130, 246, 0.4) !important;
+        }
+
+        .dark #card-kpi-attention:hover {
+            border-color: #f43f5e !important;
+            box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.8), 0 0 18px -2px rgba(244, 63, 94, 0.4) !important;
+        }
+
+        .dark #card-kpi-qa:hover {
+            border-color: #10b981 !important;
+            box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.8), 0 0 18px -2px rgba(16, 185, 129, 0.4) !important;
+        }
+
+        .dark #card-kpi-git:hover {
+            border-color: #14b8a6 !important;
+            box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.8), 0 0 18px -2px rgba(20, 184, 166, 0.4) !important;
+        }
+
+        .dark thead {
+            background-color: #121b2d !important;
+            border-bottom-color: #202e48 !important;
+        }
+
+        .dark thead th {
+            color: #94a3b8 !important;
+            background-color: #121b2d !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .dark tbody tr {
+            border-color: #162237 !important;
+            transition: background-color 0.15s ease;
+        }
+
+        .dark tbody tr:nth-child(even) {
+            background-color: rgba(18, 26, 43, 0.35);
+        }
+
+        .dark tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.1) !important;
+        }
+
+        .dark input,
+        .dark select,
+        .dark textarea {
+            background-color: #0b111e !important;
+            border-color: #22324c !important;
+            color: #f8fafc !important;
+        }
+
+        .dark select option,
+        .dark select optgroup {
+            background-color: #0f1626 !important;
+            color: #f8fafc !important;
+        }
+
+        .dark input:focus,
+        .dark select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35) !important;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dark .custom-scroll::-webkit-scrollbar-thumb {
+            background: #253550;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Top Navigation Header -->
+    <header id="app-header"
+        class="sticky top-0 z-50 bg-white/95 dark:bg-[#0f1626]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6">
+
+            <div
+                class="py-2.5 sm:py-0 sm:h-16 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+                <div class="flex items-center justify-between sm:justify-start gap-2.5">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div
+                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 border border-slate-700/80 p-1.5 shadow-md shadow-blue-500/10 flex items-center justify-center shrink-0">
+                            <svg class="w-full h-full" viewBox="0 0 48 48" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="headerCwGradTop" x1="12" y1="6" x2="36" y2="24"
+                                        gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#38bdf8" />
+                                        <stop offset="100%" stop-color="#2563eb" />
+                                    </linearGradient>
+                                    <linearGradient id="headerCwGradLeft" x1="6" y1="20" x2="24" y2="42"
+                                        gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#1d4ed8" />
+                                        <stop offset="100%" stop-color="#0f172a" />
+                                    </linearGradient>
+                                    <linearGradient id="headerCwGradRight" x1="24" y1="20" x2="42" y2="42"
+                                        gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#6366f1" />
+                                        <stop offset="100%" stop-color="#1e1b4b" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M24 6L39 15L24 24L9 15L24 6Z" fill="url(#headerCwGradTop)" />
+                                <path d="M9 15L24 24V42L9 33V15Z" fill="url(#headerCwGradLeft)" />
+                                <path d="M24 24L39 15V33L24 42V24Z" fill="url(#headerCwGradRight)" />
+                                <path d="M24 6L24 24M9 15L24 24M39 15L24 24M24 24V42" stroke="rgba(255,255,255,0.45)"
+                                    stroke-width="1.2" stroke-linejoin="round" />
+                                <circle cx="24" cy="24" r="3" fill="#ffffff" />
+                                <circle cx="24" cy="6" r="2" fill="#38bdf8" />
+                                <circle cx="39" cy="15" r="2" fill="#818cf8" />
+                                <circle cx="39" cy="33" r="2" fill="#6366f1" />
+                                <circle cx="24" cy="42" r="2" fill="#3b82f6" />
+                                <circle cx="9" cy="33" r="2" fill="#2563eb" />
+                                <circle cx="9" cy="15" r="2" fill="#38bdf8" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h1
+                                class="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate">
+                                Widget Comparison
+                            </h1>
+                            <p
+                                class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block truncate">
+                                3-Source verification across QA, Git Repository & Excel master list
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Action Buttons (Right-aligned next to logo on mobile) -->
+                    <div class="flex sm:hidden flex-col items-end gap-1 shrink-0">
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="toggleThemeQuick()" title="Toggle Dark/Light Mode"
+                                class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 transition flex items-center justify-center cursor-pointer shadow-sm">
+                                <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="handleLogout()" title="Log out"
+                                class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-400 hover:text-rose-500 transition flex items-center justify-center cursor-pointer shadow-sm">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="exportCSV()" title="Export Excel / CSV"
+                                class="p-1 px-2 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-[11px] font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1">
+                                <i data-lucide="download" class="w-3 h-3 text-emerald-500"></i>
+                                <span>Excel</span>
+                            </button>
+                        </div>
+                        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
+                            <i data-lucide="clock" class="w-2.5 h-2.5 text-slate-400"></i>
+                            <span id="mobileLastUpdatedTime">{build_time}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Action Buttons: Perfectly aligned in a unified top row with timestamp beneath -->
+                <div class="hidden sm:flex flex-col items-end gap-1.5 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <!-- User Profile Pill (if logged in) -->
+                        <div id="userProfilePill"
+                            class="app-subtle border rounded-lg px-2.5 h-8 text-xs items-center gap-2 hidden shadow-sm">
+                            <div class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[9px]"
+                                id="userAvatar">A</div>
+                            <div class="hidden sm:block text-left leading-tight">
+                                <div class="font-semibold text-slate-900 dark:text-white truncate max-w-[120px]"
+                                    id="userNameDisplay">User</div>
+                                <div class="text-[9px] text-slate-500 uppercase tracking-wider" id="userRoleBadge">Role
+                                </div>
+                            </div>
+                            <button onclick="handleLogout()" title="Log out of your session"
+                                class="text-slate-400 hover:text-rose-500 transition p-0.5">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+
+                        <!-- Theme Toggle -->
+                        <button type="button" onclick="toggleThemeQuick()" id="quickThemeBtn"
+                            title="Toggle Dark/Light Mode"
+                            class="w-8 h-8 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition flex items-center justify-center cursor-pointer shadow-sm">
+                            <i data-lucide="moon" id="quickThemeIcon" class="w-4 h-4"></i>
+                        </button>
+
+                        <!-- Export Excel Button -->
+                        <button id="desktopExportBtn" onclick="exportCSV()" title="Export data to Excel / CSV"
+                            class="h-8 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1.5">
+                            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-500"></i>
+                            <span>Export Excel</span>
+                        </button>
+                    </div>
+
+                    <!-- Last Updated Date & Time: Aligned right underneath the unified action row -->
+                    <div
+                        class="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-tight pr-1">
+                        <i data-lucide="clock" class="w-3 h-3 text-slate-400 shrink-0"></i>
+                        <span>Last Updated: <strong id="headerLastUpdatedTime"
+                                class="font-semibold text-slate-700 dark:text-slate-300">{build_time}</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs (Thumb-friendly on mobile) -->
+            <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-8 -mb-px pt-1 text-xs sm:text-sm">
+                <button onclick="switchTab('overview')" id="tab-overview"
+                    class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-blue-500 text-blue-500 dark:text-blue-400 transition whitespace-nowrap">
+                    Overview
+                </button>
+                <button onclick="drillDown('all')" id="tab-inventory"
+                    class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap">
+                    All Widgets (<span id="nav-tab-total">{total_count}</span>)
+                </button>
+
+                <!-- Admin Tabs -->
+                <button onclick="switchTab('users')" id="tab-users"
+                    class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
+                    User Management
+                </button>
+                <button onclick="switchTab('activity')" id="tab-activity"
+                    class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
+                    Activity History
+                </button>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+        <!-- File Protocol Banner -->
+        <div id="localFileBanner"
+            class="hidden p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <i data-lucide="info" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0"></i>
+                <span>Browsing via <code>file://</code> protocol. Launching interactive simulations with audio & JSON
+                    works best on a local server. Run <strong>run_local_dashboard.bat</strong> for full HTTP server
+                    mode.</span>
+            </div>
+            <button type="button" onclick="document.getElementById('localFileBanner').classList.add('hidden')"
+                class="p-1 rounded text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 shrink-0">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>

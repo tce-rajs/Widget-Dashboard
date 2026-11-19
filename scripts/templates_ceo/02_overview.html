@@ -1,0 +1,750 @@
+        <!-- ======================================================== -->
+        <!-- SECTION 1: OVERVIEW & COMPARISON ANALYTICS               -->
+        <!-- ======================================================== -->
+        <div id="view-overview" class="view-content space-y-4 sm:space-y-6">
+
+            <!-- Mobile Executive Summary Bento (Visible on mobile screens < 640px) -->
+            <div class="sm:hidden app-card border border-blue-500/20 rounded-2xl p-4 shadow-sm bg-gradient-to-b from-blue-500/[0.04] to-transparent space-y-3.5">
+                <!-- Status Row -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                            <i data-lucide="layers" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 dark:text-white">Total Ecosystem</div>
+                            <div class="text-[10px] text-slate-500">{total_assets_count} Total ({total_count} Scope + {extra_repo_count} Extra)</div>
+                        </div>
+                    </div>
+                    <span onclick="drillDown('matched_all')" class="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 cursor-pointer active:scale-95 transition">
+                        {matched_all_pct} Ready
+                    </span>
+                </div>
+
+                <!-- Overall Progress Bar Card -->
+                <div class="p-3 rounded-xl bg-white/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                    <div class="flex items-center justify-between text-xs font-semibold">
+                        <span class="text-slate-700 dark:text-slate-300">Overall Production Ready</span>
+                        <span class="text-emerald-600 dark:text-emerald-400 font-mono font-bold cursor-pointer hover:underline" onclick="drillDown('matched_all')">{matched_all_count} / {total_count}</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-teal-500 to-emerald-500 h-2.5 rounded-full" style="width: {qa_coverage_pct}"></div>
+                    </div>
+                </div>
+
+                <!-- 2x2 High-Impact Metric Tiles -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div onclick="drillDown('all')" class="p-3 rounded-xl border border-blue-500/25 bg-blue-500/[0.06] hover:bg-blue-500/15 dark:hover:bg-blue-500/25 transition cursor-pointer active:scale-95">
+                        <div class="text-[10px] font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wider">Curriculum Scope</div>
+                        <div class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">{total_count} <span class="text-[10px] font-normal text-slate-400">(100%)</span></div>
+                        <div class="text-[10px] text-slate-500">Official syllabus</div>
+                    </div>
+                    <div onclick="drillDown('matched_all')" class="p-3 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] hover:bg-emerald-500/15 dark:hover:bg-emerald-500/25 transition cursor-pointer active:scale-95">
+                        <div class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Matched &amp; Ready</div>
+                        <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{matched_all_count} <span class="text-[10px] font-normal text-slate-400">({qa_coverage_pct})</span></div>
+                        <div class="text-[10px] text-slate-500">Verified everywhere</div>
+                    </div>
+                    <div onclick="drillDown('needs_attention')" class="p-3 rounded-xl border border-rose-500/25 bg-rose-500/[0.06] hover:bg-rose-500/15 dark:hover:bg-rose-500/25 transition cursor-pointer active:scale-95">
+                        <div class="text-[10px] font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Need Attention</div>
+                        <div class="text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5">{need_attention_count} <span class="text-[10px] font-normal text-slate-400">({need_attention_pct})</span></div>
+                        <div class="text-[10px] text-slate-500">15 QA + 21 Git gaps</div>
+                    </div>
+                    <div onclick="drillDown('extra_repo')" class="p-3 rounded-xl border border-purple-500/25 bg-purple-500/[0.06] hover:bg-purple-500/15 dark:hover:bg-purple-500/25 transition cursor-pointer active:scale-95">
+                        <div class="text-[10px] font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Extra in Repo</div>
+                        <div class="text-lg font-bold text-purple-600 dark:text-purple-400 mt-0.5">+{extra_repo_count}</div>
+                        <div class="text-[10px] text-slate-500">Standalone tools</div>
+                    </div>
+                </div>
+
+                <!-- Horizontal Quick Filters Rail -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scroll text-[11px] whitespace-nowrap">
+                    <span onclick="drillDown('extra_repo')" class="px-2.5 py-1 rounded-lg border border-purple-500/25 bg-purple-500/10 text-purple-600 dark:text-purple-400 font-medium cursor-pointer active:scale-95 transition">
+                        +{extra_repo_count} Extra in Repo
+                    </span>
+                    <span onclick="drillDown('whiteboard')" class="px-2.5 py-1 rounded-lg border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer active:scale-95 transition">
+                        {whiteboard_count} Canvas Tools
+                    </span>
+                    <span onclick="drillDown('naming_issues')" class="px-2.5 py-1 rounded-lg border border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-400 font-medium cursor-pointer active:scale-95 transition">
+                        {naming_issue_count} Name Diffs
+                    </span>
+                    <span onclick="drillDown('investigation')" class="px-2.5 py-1 rounded-lg border border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-medium cursor-pointer active:scale-95 transition">
+                        {investigation_count} Review Items
+                    </span>
+                </div>
+            </div>
+
+            <!-- Desktop & Tablet Metrics Container (Hidden on small mobile phones < 640px) -->
+            <div class="hidden sm:block space-y-6 sm:space-y-7 relative z-40">
+
+                <!-- ======================================================== -->
+                <!-- EXECUTIVE SUMMARY BANNER & PRESENTATION METRICS           -->
+                <!-- ======================================================== -->
+                <div class="app-card border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 bg-gradient-to-b from-blue-500/[0.03] to-transparent relative z-40">
+                    <!-- Presentation Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 uppercase tracking-wider">Executive Presentation</span>
+                                <span class="text-xs text-slate-400 dark:text-slate-500">· CEO &amp; Management Briefing</span>
+                            </div>
+                            <h2 class="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white mt-1">Executive Summary</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Core widget inventory, repository availability, and production readiness across Excel Master, Code Repository, and QA Catalog.
+                            </p>
+                        </div>
+                        <!-- Simple Calculation Equation Bar -->
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-slate-100 dark:bg-slate-800/80 p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-mono shrink-0">
+                            <span class="text-slate-500 dark:text-slate-400 font-sans text-[11px] font-semibold">Core Equation:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-bold" title="Matched in All 3">258 Ready</span>
+                            <span class="text-slate-400">+</span>
+                            <span class="text-rose-600 dark:text-rose-400 font-bold" title="Attention Gaps">36 Gaps</span>
+                            <span class="text-slate-400">=</span>
+                            <span class="text-indigo-600 dark:text-indigo-400 font-bold" title="Curriculum Scope">294 Scope</span>
+                            <span class="text-slate-400">+</span>
+                            <span class="text-purple-600 dark:text-purple-400 font-bold" title="Extra Tools">+46 Extra</span>
+                            <span class="text-slate-400">=</span>
+                            <span class="text-blue-600 dark:text-blue-400 font-bold" title="Total Ecosystem">340 Total</span>
+                        </div>
+                    </div>
+
+                    <!-- 6 Executive KPI Metric Cards (Grid cols 2 / 3 / 6) -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 relative z-30">
+
+                        <!-- Card 1: Total Widgets Identified (340) -->
+                        <div id="card-kpi-total" onclick="drillDown('total_assets')" tabindex="0"
+                            class="kpi-card app-card border border-t-[3px] border-t-blue-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-blue-500 group shadow-xs hover:shadow-md hover:-translate-y-0.5 duration-200 relative z-20 hover:z-50 focus-within:z-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            title="Click to view all {total_assets_count} tracked assets">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[10.5px] uppercase tracking-wider text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">Total Identified</span>
+                                <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-500 shrink-0"></i>
+                            </div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-baseline gap-1">
+                                <span>{total_assets_count}</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                <span>294 scope + 46 extra</span>
+                            </div>
+                            <!-- Calculation Transparency Popover with Table -->
+                            <div class="kpi-popover pointer-events-none absolute top-full left-0 mt-2 w-full min-w-[245px] sm:w-[252px] p-3 bg-slate-900 dark:bg-[#0c1220] text-white text-xs rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-150 z-50 border border-slate-700/80 ring-1 ring-black/20">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[11px]">
+                                    <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                                        <i data-lucide="table" class="w-3.5 h-3.5 text-blue-400"></i>
+                                        <span>Total Identified</span>
+                                    </span>
+                                    <span class="font-mono font-bold text-blue-400 text-xs">340 Total</span>
+                                </div>
+                                
+                                <table class="w-full text-[10.5px] font-mono mt-1.5 border-collapse">
+                                    <tbody>
+                                        <tr class="text-slate-300 border-b border-slate-800/60">
+                                            <td class="py-0.5 text-emerald-300 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                                                <span>Matched in All 3</span>
+                                            </td>
+                                            <td class="py-0.5 text-right font-bold text-emerald-400">{matched_all_count}</td>
+                                        </tr>
+                                        <tr class="text-slate-300 border-b border-slate-800/60">
+                                            <td class="py-0.5 text-amber-300 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                                                <span>Missing in QA</span>
+                                            </td>
+                                            <td class="py-0.5 text-right font-bold text-amber-400">+{missing_qa_count}</td>
+                                        </tr>
+                                        <tr class="text-slate-300 border-b border-slate-800/60">
+                                            <td class="py-0.5 text-rose-300 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
+                                                <span>Missing in Git</span>
+                                            </td>
+                                            <td class="py-0.5 text-right font-bold text-rose-400">+21</td>
+                                        </tr>
+                                        <tr class="bg-indigo-500/10 text-indigo-300 font-bold border-b border-indigo-500/20">
+                                            <td class="py-0.5 px-0.5">Curriculum Scope</td>
+                                            <td class="py-0.5 px-0.5 text-right font-mono text-indigo-300">{total_count}</td>
+                                        </tr>
+                                        <tr class="text-purple-300 border-b border-purple-500/20">
+                                            <td class="py-0.5 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0"></span>
+                                                <span>Extra in Repo</span>
+                                            </td>
+                                            <td class="py-0.5 text-right font-bold text-purple-400">+{extra_repo_count}</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="bg-blue-500/15 text-blue-300 font-extrabold text-xs">
+                                            <td class="py-1 px-0.5">= Total Identified</td>
+                                            <td class="py-1 px-0.5 text-right font-mono text-emerald-400">{total_assets_count}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                <div class="text-[9px] text-slate-400 text-center mt-1.5 pt-1 border-t border-slate-800 font-sans">
+                                    294 Scope + 46 Extra = 340 Total
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Curriculum Scope (294) -->
+                        <div id="card-kpi-xl" onclick="drillDown('all')" tabindex="0"
+                            class="kpi-card app-card border border-t-[3px] border-t-indigo-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-indigo-500 group shadow-xs hover:shadow-md hover:-translate-y-0.5 duration-200 relative z-20 hover:z-50 focus-within:z-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            title="Click to view all {total_count} curriculum widgets">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[10.5px] uppercase tracking-wider text-indigo-700 dark:text-indigo-400 group-hover:text-indigo-500 truncate">Curriculum Scope</span>
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-indigo-500 shrink-0"></i>
+                            </div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 flex items-baseline gap-1">
+                                <span>{total_count}</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                <span>official scope · 100%</span>
+                            </div>
+                            <!-- Calculation Transparency Popover -->
+                            <div class="kpi-popover pointer-events-none absolute top-full left-0 mt-2 w-full min-w-[245px] sm:w-[252px] p-3 bg-slate-900 dark:bg-[#0c1220] text-white text-xs rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-150 z-50 border border-slate-700/80 ring-1 ring-black/20">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[11px]">
+                                    <span class="font-bold text-indigo-300 flex items-center gap-1.5">
+                                        <i data-lucide="calculator" class="w-3.5 h-3.5 text-indigo-400"></i>
+                                        <span>Curriculum Scope</span>
+                                    </span>
+                                    <span class="font-mono font-bold text-indigo-400 text-xs">294 Scope</span>
+                                </div>
+                                <div class="space-y-1.5 mt-2 text-[10.5px]">
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">1. Meaning:</span>
+                                        <p class="text-slate-200 leading-tight">Master syllabus requirement agreed for CE Platinum &amp; Crystal curriculum.</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">2. Source:</span>
+                                        <p class="text-slate-200 leading-tight">Widgets in CE Platinum cum Crystal.xlsx master sheet.</p>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-indigo-500/10 border border-indigo-500/20 font-mono text-[10px]">
+                                        <span class="text-indigo-300 font-bold">Calculation:</span>
+                                        <div class="text-white font-bold">258 Ready + 15 QA Gap + 21 Git Gap = 294</div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 space-y-0.5">
+                                        <div><strong class="text-slate-300">Included:</strong> All 294 official syllabus entries.</div>
+                                        <div><strong class="text-slate-300">Excluded:</strong> Standalone tools built outside scope.</div>
+                                    </div>
+                                </div>
+                                <div class="text-[9.5px] text-indigo-400 text-center mt-2 pt-1 border-t border-slate-800 font-sans">
+                                    Click to view all 294 scope widgets
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Available in Repository (273 / 319) -->
+                        <div id="card-kpi-repo" onclick="drillDown('developed')" tabindex="0"
+                            class="kpi-card app-card border border-t-[3px] border-t-teal-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-teal-500 group shadow-xs hover:shadow-md hover:-translate-y-0.5 duration-200 relative z-20 hover:z-50 focus-within:z-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            title="Click to view {present_both_count} developed widgets in scope">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[10.5px] uppercase tracking-wider text-teal-700 dark:text-teal-400 group-hover:text-teal-500 truncate">In Repository</span>
+                                <i data-lucide="git-branch" class="w-3.5 h-3.5 text-teal-500 shrink-0"></i>
+                            </div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-teal-600 dark:text-teal-400 flex items-baseline gap-1">
+                                <span>{present_both_count}</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                <span>{dev_coverage_pct} scope · {total_git_assets} codebase</span>
+                            </div>
+                            <!-- Calculation Transparency Popover -->
+                            <div class="kpi-popover pointer-events-none absolute top-full left-0 mt-2 w-full min-w-[245px] sm:w-[252px] p-3 bg-slate-900 dark:bg-[#0c1220] text-white text-xs rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-150 z-50 border border-slate-700/80 ring-1 ring-black/20">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[11px]">
+                                    <span class="font-bold text-teal-300 flex items-center gap-1.5">
+                                        <i data-lucide="git-branch" class="w-3.5 h-3.5 text-teal-400"></i>
+                                        <span>Available in Repo</span>
+                                    </span>
+                                    <span class="font-mono font-bold text-teal-400 text-xs">{present_both_count} Scope</span>
+                                </div>
+                                <div class="space-y-1.5 mt-2 text-[10.5px]">
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">1. Meaning:</span>
+                                        <p class="text-slate-200 leading-tight">Curriculum widgets with verified runnable simulation code on disk.</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">2. Source:</span>
+                                        <p class="text-slate-200 leading-tight">Git filesystem scan (widgets-b1/b2/b3, src/app).</p>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-teal-500/10 border border-teal-500/20 font-mono text-[10px]">
+                                        <span class="text-teal-300 font-bold">Calculation:</span>
+                                        <div class="text-white font-bold">258 Ready + 15 Missing QA = 273 in Git</div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 space-y-0.5">
+                                        <div><strong class="text-slate-300">Included:</strong> 273 verified scope code files.</div>
+                                        <div><strong class="text-slate-300">Excluded:</strong> 21 syllabus items without code.</div>
+                                    </div>
+                                </div>
+                                <div class="text-[9.5px] text-teal-400 text-center mt-2 pt-1 border-t border-slate-800 font-sans">
+                                    Click to view 273 developed widgets
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Production Ready (258 · 87.8%) -->
+                        <div id="card-kpi-qa" onclick="drillDown('matched_all')" tabindex="0"
+                            class="kpi-card app-card border border-t-[3px] border-t-emerald-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-emerald-500 group shadow-xs hover:shadow-md hover:-translate-y-0.5 duration-200 relative z-20 hover:z-50 focus-within:z-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            title="Click to view {matched_all_count} verified production ready widgets">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[10.5px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-500 truncate">Production Ready</span>
+                                <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                            </div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 flex items-baseline gap-1">
+                                <span>{matched_all_count}</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                <span>{qa_coverage_pct} verified in all 3</span>
+                            </div>
+                            <!-- Calculation Transparency Popover -->
+                            <div class="kpi-popover pointer-events-none absolute top-full right-0 mt-2 w-full min-w-[245px] sm:w-[252px] p-3 bg-slate-900 dark:bg-[#0c1220] text-white text-xs rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-150 z-50 border border-slate-700/80 ring-1 ring-black/20">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[11px]">
+                                    <span class="font-bold text-emerald-300 flex items-center gap-1.5">
+                                        <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                        <span>Production Ready</span>
+                                    </span>
+                                    <span class="font-mono font-bold text-emerald-400 text-xs">258 Ready</span>
+                                </div>
+                                <div class="space-y-1.5 mt-2 text-[10.5px]">
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">1. Meaning:</span>
+                                        <p class="text-slate-200 leading-tight">Widgets affirmative and verified across Excel Master, Git, and QA Catalog.</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">2. Source:</span>
+                                        <p class="text-slate-200 leading-tight">3-Source Cross-Reconciliation.</p>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-emerald-500/10 border border-emerald-500/20 font-mono text-[10px]">
+                                        <span class="text-emerald-300 font-bold">Calculation:</span>
+                                        <div class="text-white font-bold">258 Ready ÷ 294 Scope = 87.8% Ready</div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 space-y-0.5">
+                                        <div><strong class="text-slate-300">Included:</strong> All 258 fully matched widgets.</div>
+                                        <div><strong class="text-slate-300">Excluded:</strong> 36 gaps (15 QA + 21 Git gaps).</div>
+                                    </div>
+                                </div>
+                                <div class="text-[9.5px] text-emerald-400 text-center mt-2 pt-1 border-t border-slate-800 font-sans">
+                                    Click to view 258 ready widgets
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Need Attention (36) -->
+                        <div id="card-kpi-attention" onclick="drillDown('needs_attention')" tabindex="0"
+                            class="kpi-card app-card border border-t-[3px] border-t-rose-600 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-rose-600 group shadow-xs hover:shadow-md hover:-translate-y-0.5 duration-200 relative z-20 hover:z-50 focus-within:z-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            title="Click to filter {need_attention_count} widgets needing attention">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[10.5px] uppercase tracking-wider text-rose-700 dark:text-rose-400 group-hover:text-rose-600 truncate">Need Attention</span>
+                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-600 shrink-0"></i>
+                            </div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400 flex items-baseline gap-1">
+                                <span>{need_attention_count}</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                <span>15 QA gap + 21 Git gap</span>
+                            </div>
+                            <!-- Calculation Transparency Popover -->
+                            <div class="kpi-popover pointer-events-none absolute top-full right-0 mt-2 w-full min-w-[245px] sm:w-[252px] p-3 bg-slate-900 dark:bg-[#0c1220] text-white text-xs rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-150 z-50 border border-slate-700/80 ring-1 ring-black/20">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[11px]">
+                                    <span class="font-bold text-rose-300 flex items-center gap-1.5">
+                                        <i data-lucide="calculator" class="w-3.5 h-3.5 text-rose-400"></i>
+                                        <span>Attention Gaps</span>
+                                    </span>
+                                    <span class="font-mono font-bold text-rose-400 text-xs">36 Gaps</span>
+                                </div>
+                                <div class="space-y-1.5 mt-2 text-[10.5px]">
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">1. Meaning:</span>
+                                        <p class="text-slate-200 leading-tight">Widgets in official curriculum scope that are missing from either QA or Git repository.</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">2. Source:</span>
+                                        <p class="text-slate-200 leading-tight">Reconciliation gaps across Git &amp; QA.</p>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-rose-500/10 border border-rose-500/20 font-mono text-[10px]">
+                                        <span class="text-rose-300 font-bold">Calculation:</span>
+                                        <div class="text-white font-bold">15 Missing QA + 21 Missing Git = 36 Gaps</div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 space-y-0.5">
+                                        <div><strong class="text-slate-300">Included:</strong> 15 QA gaps + 12 dev backlog + 9 canvas tools.</div>
+                                        <div><strong class="text-slate-300">Excluded:</strong> Matched in all 3 &amp; Extra tools.</div>
+                                    </div>
+                                </div>
+                                <div class="text-[9.5px] text-rose-400 text-center mt-2 pt-1 border-t border-slate-800 font-sans">
+                                    Click to view 36 attention widgets
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 6: Extra in Repository (+46) -->
+                        <div id="card-kpi-git" onclick="drillDown('extra_repo')" tabindex="0"
+                            class="kpi-card app-card border border-t-[3px] border-t-purple-500 rounded-xl p-3 sm:p-3.5 cursor-pointer transition hover:border-purple-500 group shadow-xs hover:shadow-md hover:-translate-y-0.5 duration-200 relative z-20 hover:z-50 focus-within:z-50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            title="Click to view extra repository tools">
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span class="font-bold text-[10.5px] uppercase tracking-wider text-purple-700 dark:text-purple-400 group-hover:text-purple-500 truncate">Extra in Repo</span>
+                                <i data-lucide="package-plus" class="w-3.5 h-3.5 text-purple-500 shrink-0"></i>
+                            </div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400 flex items-baseline gap-1">
+                                <span>+{extra_repo_count}</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                <span>standalone tools outside Excel</span>
+                            </div>
+                            <!-- Calculation Transparency Popover -->
+                            <div class="kpi-popover pointer-events-none absolute top-full right-0 mt-2 w-full min-w-[245px] sm:w-[252px] p-3 bg-slate-900 dark:bg-[#0c1220] text-white text-xs rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-150 z-50 border border-slate-700/80 ring-1 ring-black/20">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[11px]">
+                                    <span class="font-bold text-purple-300 flex items-center gap-1.5">
+                                        <i data-lucide="package-plus" class="w-3.5 h-3.5 text-purple-400"></i>
+                                        <span>Extra in Repo</span>
+                                    </span>
+                                    <span class="font-mono font-bold text-purple-400 text-xs">+{extra_repo_count} Extra</span>
+                                </div>
+                                <div class="space-y-1.5 mt-2 text-[10.5px]">
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">1. Meaning:</span>
+                                        <p class="text-slate-200 leading-tight">Working standalone HTML5 simulations on disk omitted from Excel syllabus.</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-semibold">2. Source:</span>
+                                        <p class="text-slate-200 leading-tight">Directory scan of widgets-b1, widgets-b2, widgets-b3.</p>
+                                    </div>
+                                    <div class="p-1.5 rounded bg-purple-500/10 border border-purple-500/20 font-mono text-[10px]">
+                                        <span class="text-purple-300 font-bold">Calculation:</span>
+                                        <div class="text-white font-bold">319 Codebase − 273 Scope = +46 Extra</div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 space-y-0.5">
+                                        <div><strong class="text-slate-300">Included:</strong> 13 in QA + 33 Git codebase only.</div>
+                                        <div><strong class="text-slate-300">Excluded:</strong> The 294 official syllabus entries.</div>
+                                    </div>
+                                </div>
+                                <div class="text-[9.5px] text-purple-400 text-center mt-2 pt-1 border-t border-slate-800 font-sans">
+                                    Click to view +46 extra tools
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2b. Unified 3-Source Reconciliation & Ecosystem Status -->
+            <div class="app-card border rounded-2xl p-4 sm:p-6 shadow-sm space-y-5 relative z-10">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span>3-Source Reconciliation & Status Breakdown</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                Exact data reconciliation across Excel Master ({total_count}), Git Codebase ({present_both_count}), and QA Environment ({matched_all_count})
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content: Side-by-Side Donut Visual + Reconciliation Matrix Table -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    
+                    <!-- Left: Donut Chart Visual (5 cols on lg) -->
+                    <div class="lg:col-span-5 flex flex-col items-center justify-center p-2">
+                        <div class="w-60 h-60 sm:w-64 sm:h-64 relative flex items-center justify-center group/donut cursor-pointer" title="Calculation: 258 Matched in All 3 ÷ 294 Curriculum Scope = 87.8% Production Ready" onclick="drillDown('matched_all')">
+                            <canvas id="reconciliationDonutChart"></canvas>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span class="text-3xl font-extrabold text-slate-900 dark:text-white font-mono" id="donutCenterNumber">258</span>
+                                <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Matched &amp; Ready</span>
+                                <span class="text-[10px] text-slate-400 font-mono mt-0.5">87.8% of Scope (258 / 294)</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center gap-3 mt-3 flex-wrap text-[11px] text-slate-500 dark:text-slate-400">
+                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Matched ({matched_all_count})</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Missing QA ({missing_qa_count})</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span>Missing Git (21)</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-500"></span>Extra (+{extra_repo_count})</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Structured Reconciliation Table (7 cols on lg) -->
+                    <div class="lg:col-span-7 space-y-3">
+                        <!-- Desktop / Tablet Table -->
+                        <div class="hidden sm:block overflow-x-auto custom-scroll border border-slate-200/80 dark:border-slate-800 rounded-xl">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="app-subtle border-b text-slate-700 dark:text-slate-300 font-semibold uppercase tracking-wider text-[11px]">
+                                        <th class="py-2.5 px-3">Classification</th>
+                                        <th class="py-2.5 px-2 text-center" title="Widgets in official Excel syllabus">Excel</th>
+                                        <th class="py-2.5 px-2 text-center" title="Widgets committed in Git repository">Git</th>
+                                        <th class="py-2.5 px-2 text-center" title="Widgets verified in QA environment">QA</th>
+                                        <th class="py-2.5 px-2 text-center" title="Total widget count for this classification">Count</th>
+                                        <th class="py-2.5 px-2 text-center" title="Percentage of the 294 Curriculum Scope baseline">% Scope</th>
+                                        <th class="py-2.5 px-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                                    <!-- Row 1: Matched in All 3 (258) -->
+                                    <tr class="hover:bg-emerald-500/[0.06] dark:hover:bg-emerald-500/[0.18] transition group">
+                                        <td class="py-2.5 px-3 cursor-pointer" onclick="drillDown('matched_all')" title="Click to view 258 Matched widgets">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                                <div>
+                                                    <div class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">Matched in All 3</div>
+                                                    <div class="text-[10px] text-slate-500">In Excel, Git, and QA</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('matched_all')" title="Click to view 258 widgets in Excel">✓ 258</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('matched_all')" title="Click to view 258 widgets in Git">✓ 258</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('matched_all')" title="Click to view 258 widgets in QA">✓ 258</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-extrabold text-sm text-emerald-600 dark:text-emerald-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('matched_all')" title="Click to view 258 Matched widgets">{matched_all_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-semibold text-slate-700 dark:text-slate-300" title="Calculation: 258 ÷ 294 = 87.8%">{qa_coverage_pct}</td>
+                                        <td class="py-2.5 px-3 text-right">
+                                            <button onclick="drillDown('matched_all')" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition cursor-pointer active:scale-95" title="View 258 matched widgets">
+                                                View {matched_all_count}
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 2: Missing in QA (15) -->
+                                    <tr class="hover:bg-amber-500/[0.06] dark:hover:bg-amber-500/[0.18] transition group">
+                                        <td class="py-2.5 px-3 cursor-pointer" onclick="drillDown('missing_qa')" title="Click to view 15 widgets missing in QA">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                                <div>
+                                                    <div class="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">Missing in QA</div>
+                                                    <div class="text-[10px] text-slate-500">Code in Git, uncataloged in QA</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-amber-600 dark:text-amber-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('missing_qa')" title="Click to view 15 widgets missing in QA">✓ 15</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-amber-600 dark:text-amber-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('missing_qa')" title="Click to view 15 widgets missing in QA">✓ 15</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-rose-500" title="Not present in QA">✗ 0</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-extrabold text-sm text-amber-600 dark:text-amber-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('missing_qa')" title="Click to view ONLY the 15 widgets missing in QA">{missing_qa_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-semibold text-slate-700 dark:text-slate-300" title="Calculation: 15 ÷ 294 = 5.1%">{missing_qa_pct}</td>
+                                        <td class="py-2.5 px-3 text-right">
+                                            <button onclick="drillDown('missing_qa')" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition cursor-pointer active:scale-95" title="View 15 widgets missing in QA">
+                                                View {missing_qa_count}
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 3: Missing in Git (21) -->
+                                    <tr class="hover:bg-rose-500/[0.06] dark:hover:bg-rose-500/[0.18] transition group">
+                                        <td class="py-2.5 px-3 cursor-pointer" onclick="drillDown('requires_dev')" title="Click to view ONLY the 21 widgets missing in Git">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                                                <div>
+                                                    <div class="font-bold text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition">Missing in Git</div>
+                                                    <div class="text-[10px] text-slate-500">12 Dev Backlog + 9 Whiteboard</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-rose-600 dark:text-rose-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('requires_dev')" title="Click to view ONLY the 21 widgets missing in Git">✓ 21</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-rose-500" title="Missing in Git codebase">✗ 0</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-rose-500" title="Missing in QA">✗ 0</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-extrabold text-sm text-rose-600 dark:text-rose-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('requires_dev')" title="Click to view ONLY the 21 widgets missing in Git">21</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-semibold text-slate-700 dark:text-slate-300" title="Calculation: 21 ÷ 294 = 7.1%">7.1%</td>
+                                        <td class="py-2.5 px-3 text-right">
+                                            <button onclick="drillDown('requires_dev')" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 transition cursor-pointer active:scale-95" title="View ONLY the 21 widgets missing in Git">
+                                                View 21
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Summary Subtotal Row: Total Curriculum Scope (294) -->
+                                    <tr class="bg-slate-100/90 dark:bg-slate-800/90 font-bold border-t-2 border-slate-300 dark:border-slate-700">
+                                        <td class="py-2.5 px-3 text-slate-900 dark:text-white cursor-pointer" onclick="drillDown('all')" title="Click to view all 294 Curriculum Scope widgets">
+                                            <div class="flex items-center gap-1.5">
+                                                <i data-lucide="calculator" class="w-3.5 h-3.5 text-blue-500"></i>
+                                                <span>Total Scope (Baseline)</span>
+                                            </div>
+                                            <div class="text-[10px] font-normal text-slate-500 font-mono">258 + 15 + 21 = 294 (100%)</div>
+                                        </td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('all')" title="Excel Total: 258 + 15 + 21 = 294">{total_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-teal-600 dark:text-teal-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('present_in_git')" title="Git Total: 258 + 15 = 273 (Click to view 273 in Git)">{present_both_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('matched_all')" title="QA Total: 258 (Click to view 258 in QA)">{matched_all_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-extrabold text-sm text-slate-900 dark:text-white cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('all')" title="Click to view all 294 Curriculum Scope widgets">{total_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono text-slate-900 dark:text-white font-bold" title="Calculation: 87.8% + 5.1% + 7.1% = 100%">100%</td>
+                                        <td class="py-2.5 px-3 text-right">
+                                            <button onclick="drillDown('all')" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition cursor-pointer active:scale-95 shadow-xs" title="View all 294 curriculum widgets">
+                                                View All {total_count}
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 5: Extra in Repo (Non-Scope: +46) -->
+                                    <tr class="hover:bg-purple-500/[0.06] dark:hover:bg-purple-500/[0.18] transition group bg-purple-500/[0.02]">
+                                        <td class="py-2.5 px-3 cursor-pointer" onclick="drillDown('extra_repo')" title="Click to view 46 extra tools in Git">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+                                                <div>
+                                                    <div class="font-bold text-purple-700 dark:text-purple-400 group-hover:text-purple-600 transition">Extra in Repo</div>
+                                                    <div class="text-[10px] text-slate-500">{total_git_assets} in Repo − {present_both_count} in Scope = +{extra_repo_count} Extra (13 in QA, 33 Git only)</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-2.5 px-2 text-center font-mono text-slate-400" title="Not in official curriculum scope">—</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-purple-600 dark:text-purple-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('extra_repo')" title="Click to view 46 extra tools in Git">✓ 46</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-purple-600 dark:text-purple-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('extra_qa')" title="Click to view 13 extra tools cataloged in QA">✓ 13</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-extrabold text-sm text-purple-600 dark:text-purple-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('extra_repo')" title="Click to view 46 extra tools">+{extra_repo_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono text-slate-400" title="Outside curriculum scope baseline">—</td>
+                                        <td class="py-2.5 px-3 text-right">
+                                            <button onclick="drillDown('extra_repo')" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 transition cursor-pointer active:scale-95" title="View 46 extra repository tools">
+                                                View +{extra_repo_count}
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 6: Grand Total All Tracked Assets (340) -->
+                                    <tr class="bg-blue-500/[0.06] dark:bg-blue-950/40 font-bold border-t border-blue-500/30">
+                                        <td class="py-2.5 px-3 text-blue-700 dark:text-blue-300 cursor-pointer" onclick="drillDown('all_including_extra')" title="Click to view all 340 tracked assets">
+                                            <div class="flex items-center gap-1.5">
+                                                <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-500"></i>
+                                                <span>Total Tracked Assets</span>
+                                            </div>
+                                            <div class="text-[10px] font-normal text-blue-600/80 dark:text-blue-400/80 font-mono">294 Scope + 46 Extra = 340 Total</div>
+                                        </td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('all')" title="Click to view 294 in Excel Scope">294</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-purple-600 dark:text-purple-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('all_codebase')" title="273 Scope + 46 Extra = 319 in Codebase (Click to view)">319</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('qa_verified')" title="258 Scope + 13 Extra = 271 in QA (Click to view)">271</td>
+                                        <td class="py-2.5 px-2 text-center font-mono font-extrabold text-sm text-blue-600 dark:text-blue-400 cursor-pointer hover:underline active:scale-95 transition" onclick="drillDown('all_including_extra')" title="Click to view all 340 tracked assets">{total_assets_count}</td>
+                                        <td class="py-2.5 px-2 text-center font-mono text-slate-500" title="Calculated: 294 Scope + 46 Extra = 340 Assets">—</td>
+                                        <td class="py-2.5 px-3 text-right">
+                                            <button onclick="drillDown('all_including_extra')" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-600/30 transition cursor-pointer active:scale-95" title="View all 340 tracked assets">
+                                                View All {total_assets_count}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Cards View for Small Screens (< 640px) -->
+                        <div class="sm:hidden space-y-2">
+                            <!-- Mobile Card 1: Matched in All 3 -->
+                            <div onclick="drillDown('matched_all')" class="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.05] flex items-center justify-between cursor-pointer active:scale-98 transition">
+                                <div>
+                                    <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300">Matched in All 3</div>
+                                    <div class="text-[10px] text-slate-500">Excel: ✓ &bull; Git: ✓ &bull; QA: ✓</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-mono font-extrabold text-sm text-emerald-600 dark:text-emerald-400">{matched_all_count}</div>
+                                    <div class="text-[10px] text-slate-400">{qa_coverage_pct}</div>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Card 2: Missing in QA -->
+                            <div onclick="drillDown('missing_qa')" class="p-2.5 rounded-xl border border-amber-500/30 bg-amber-500/[0.05] flex items-center justify-between cursor-pointer active:scale-98 transition">
+                                <div>
+                                    <div class="text-xs font-bold text-amber-800 dark:text-amber-300">Missing in QA</div>
+                                    <div class="text-[10px] text-slate-500">Excel: ✓ &bull; Git: ✓ &bull; QA: ✗</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-mono font-extrabold text-sm text-amber-600 dark:text-amber-400">{missing_qa_count}</div>
+                                    <div class="text-[10px] text-slate-400">{missing_qa_pct}</div>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Card 3: Missing in Git -->
+                            <div onclick="drillDown('requires_dev')" class="p-2.5 rounded-xl border border-rose-500/30 bg-rose-500/[0.05] flex items-center justify-between cursor-pointer active:scale-98 transition">
+                                <div>
+                                    <div class="text-xs font-bold text-rose-800 dark:text-rose-300">Missing in Git</div>
+                                    <div class="text-[10px] text-slate-500">Excel: ✓ &bull; Git: ✗ &bull; QA: ✗</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-mono font-extrabold text-sm text-rose-600 dark:text-rose-400">21</div>
+                                    <div class="text-[10px] text-slate-400">7.1%</div>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Card 4: Total Scope Baseline -->
+                            <div onclick="drillDown('all')" class="p-2.5 rounded-xl border border-blue-500/30 bg-blue-500/[0.05] flex items-center justify-between cursor-pointer active:scale-98 transition">
+                                <div>
+                                    <div class="text-xs font-bold text-blue-800 dark:text-blue-300">Total Scope (Baseline)</div>
+                                    <div class="text-[10px] text-slate-500">258 + 15 + 21 = 294 (100%)</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-mono font-extrabold text-sm text-blue-600 dark:text-blue-400">{total_count}</div>
+                                    <div class="text-[10px] text-slate-400">100%</div>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Card 5: Extra in Repo -->
+                            <div onclick="drillDown('extra_repo')" class="p-2.5 rounded-xl border border-purple-500/30 bg-purple-500/[0.05] flex items-center justify-between cursor-pointer active:scale-98 transition">
+                                <div>
+                                    <div class="text-xs font-bold text-purple-700 dark:text-purple-300">Additional Repo Assets</div>
+                                    <div class="text-[10px] text-slate-500">340 Total − 294 Scope = +46</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-mono font-extrabold text-sm text-purple-600 dark:text-purple-400">+{extra_repo_count}</div>
+                                    <div class="text-[10px] text-slate-400">Bonus</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Subject-Wise Performance -->
+            <div class="app-card border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                            Subject-Wise Performance & Availability
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Detailed breakdown across 15 subject strands showing Expected, Developed, QA, and Gaps. Click any number to filter.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 self-start sm:self-auto text-xs">
+                        <span class="text-[11px] font-mono px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                            {subject_count} Subject Strands
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Responsive Card View for Mobile Screens -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:hidden">
+                    {subject_cards_html}
+                </div>
+
+                <!-- Desktop Table View with Multi-Attribute Clickable Cells -->
+                <div class="hidden md:block overflow-x-auto custom-scroll">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                              <tr class="app-subtle border-b text-slate-600 dark:text-slate-400 font-semibold text-[11px] uppercase tracking-wider">
+                                  <th class="py-2.5 px-3">Subject Strand</th>
+                                  <th class="py-2.5 px-3 text-center">Total Scope</th>
+                                  <th class="py-2.5 px-3 text-center">In Repository</th>
+                                  <th class="py-2.5 px-3 text-center">Missing from Repo</th>
+                                  <th class="py-2.5 px-3 text-center">In QA Catalog</th>
+                                  <th class="py-2.5 px-3 text-center">Needs Dev</th>
+                                  <th class="py-2.5 px-3 text-center">Readiness Rate</th>
+                                  <th class="py-2.5 px-3 text-center">Management Priority</th>
+                                  <th class="py-2.5 px-3 text-right">Action</th>
+                              </tr>
+                          </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                            {subject_performance_table_html}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Invisible hooks to maintain full compatibility with updateDynamicMetrics -->
+            <span id="stat-excel-found" class="hidden"></span>
+            <span id="stat-excel-found-pct" class="hidden"></span>
+            <span id="stat-excel-notfound" class="hidden"></span>
+            <span id="stat-excel-notfound-num" class="hidden"></span>
+            <span id="stat-excel-notfound-pct" class="hidden"></span>
+            <span id="stat-excel-repeated" class="hidden"></span>
+            <span id="stat-excel-repeated-num" class="hidden"></span>
+            <span id="stat-excel-notfound-sub" class="hidden"></span>
+            <span id="stat-excel-notfound-sub-num" class="hidden"></span>
+            <span id="sheetRefName" class="hidden"></span>
+            <span id="pill-source-present" class="hidden"></span>
+            <span id="pill-live-html" class="hidden"></span>
+            <span id="pill-source-missing" class="hidden"></span>
+            <span id="pill-whiteboard" class="hidden"></span>
+            <span id="stat-minor-badge" class="hidden"></span>
+            <span id="stat-dev-badge" class="hidden"></span>
+            <span id="stat-wb-badge" class="hidden"></span>
+
+        </div>

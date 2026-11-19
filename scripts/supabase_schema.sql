@@ -37,9 +37,14 @@ create index if not exists idx_app_users_email on public.app_users (email);
 create index if not exists idx_app_users_status on public.app_users (status);
 create index if not exists idx_app_activity_logs_timestamp on public.app_activity_logs (timestamp desc);
 
--- 4. Enable Row Level Security (RLS)
+-- 4. Enable Row Level Security (RLS) & Grant Permissions
 alter table public.app_users enable row level security;
 alter table public.app_activity_logs enable row level security;
+
+-- Grant table access to anon and authenticated roles
+grant usage on schema public to anon, authenticated, service_role;
+grant all on table public.app_users to anon, authenticated, service_role;
+grant all on table public.app_activity_logs to anon, authenticated, service_role;
 
 -- 5. Policies for Public Anon API Access (Permits direct browser dashboard access)
 drop policy if exists "Allow anon read and write on app_users" on public.app_users;

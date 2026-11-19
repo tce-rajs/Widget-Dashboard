@@ -174,7 +174,7 @@ class AuthManager {
         } catch (e) {
             console.warn('Error saving Supabase config:', e);
         }
-        return this.initSupabase();
+        return this.initSupabase(false);
     }
 
     isSupabaseConfigured() {
@@ -186,7 +186,7 @@ class AuthManager {
         return !!(this.supabase && this.isSupabaseConfigured());
     }
 
-    initSupabase() {
+    initSupabase(autoSync = true) {
         const config = this.getSupabaseConfig();
         if (config.url && config.anonKey && typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
             try {
@@ -194,7 +194,9 @@ class AuthManager {
                     auth: { persistSession: false }
                 });
                 console.log('[AuthManager] Supabase client initialized for:', config.url);
-                this.syncWithCloud();
+                if (autoSync) {
+                    this.syncWithCloud();
+                }
                 if (config.realtime) {
                     this.subscribeRealtime();
                 }
@@ -211,7 +213,8 @@ class AuthManager {
     }
 
     async syncWithCloud() {
-        if (!this.supabase || this.cloudSyncing) return;
+        if (!this.supabase) return { success: false, error: 'Database not initialized' };
+        if (this.cloudSyncing) return { success: false, error: 'Sync already in progress' };
         this.cloudSyncing = true;
         try {
             const { data, error } = await this.supabase
@@ -221,15 +224,15 @@ class AuthManager {
 
             if (error) {
                 console.warn('[AuthManager] Supabase select error:', error.message);
-                this.cloudSyncing = false;
-                return;
+                return { success: false, error: error.message };
             }
 
             if (Array.isArray(data)) {
                 if (data.length === 0) {
                     // Cloud table is empty: Auto-seed initial local users to Supabase
                     console.log('[AuthManager] Cloud table empty. Seeding local users to Supabase...');
-                    await this.pushLocalUsersToCloud();
+                    const pushRes = await this.pushLocalUsersToCloud();
+                    return { success: pushRes.success, count: pushRes.count, seeded: true, error: pushRes.error };
                 } else {
                     // Map cloud DB records to local user format
                     const cloudUsers = data.map(r => ({
@@ -250,10 +253,13 @@ class AuthManager {
                     if (typeof window !== 'undefined' && window.dispatchEvent) {
                         window.dispatchEvent(new CustomEvent('dashboard_users_changed', { detail: { source: 'cloud' } }));
                     }
+                    return { success: true, count: cloudUsers.length, seeded: false };
                 }
             }
+            return { success: true, count: 0 };
         } catch (e) {
             console.warn('[AuthManager] Cloud sync exception:', e);
+            return { success: false, error: e.message };
         } finally {
             this.cloudSyncing = false;
         }
@@ -263,10 +269,13 @@ class AuthManager {
         if (!this.supabase) return { success: false, error: 'Supabase client not connected' };
         try {
             const users = this.getUsers();
+            if (!users || users.length === 0) {
+                return { success: false, error: 'No local users available to push' };
+            }
             const rows = users.map(u => ({
                 id: u.id,
                 full_name: u.fullName,
-                username: u.username || u.email.split('@')[0],
+                username: u.username || (u.email ? u.email.split('@')[0] : 'user'),
                 email: u.email.toLowerCase(),
                 password_hash: u.passwordHash,
                 role: u.role,
@@ -275,13 +284,26 @@ class AuthManager {
                 last_login: u.lastLogin || null
             }));
 
-            const { error } = await this.supabase
+            let { data, error } = await this.supabase
                 .from('app_users')
-                .upsert(rows, { onConflict: 'email' });
+                .upsert(rows);
 
-            if (error) return { success: false, error: error.message };
+            if (error) {
+                console.warn('[AuthManager] Primary key upsert failed, retrying on email conflict:', error.message);
+                const retry = await this.supabase
+                    .from('app_users')
+                    .upsert(rows, { onConflict: 'email' });
+                error = retry.error;
+            }
+
+            if (error) {
+                console.error('[AuthManager] pushLocalUsersToCloud failed:', error.message);
+                return { success: false, error: error.message };
+            }
+            console.log(`[AuthManager] Successfully seeded ${rows.length} users to Supabase cloud!`);
             return { success: true, count: rows.length };
         } catch (e) {
+            console.error('[AuthManager] pushLocalUsersToCloud exception:', e);
             return { success: false, error: e.message };
         }
     }
@@ -728,10 +750,11 @@ class AuthManager {
         const user = users.find(u => String(u.id) === String(userId));
         if (!user) return { success: false, error: 'User not found' };
 
-        const cleanEmail = (email || '').trim().toLowerCase();
+        const cleanEmail = (email || user.email || '').trim().toLowerCase();
         if (!cleanEmail) return { success: false, error: 'Email is required' };
-        const cleanName = (fullName || '').trim();
+        const cleanName = (fullName || user.fullName || '').trim();
         if (!cleanName) return { success: false, error: 'Full name is required' };
+        role = role || user.role || 'viewer';
 
         const emailExists = users.some(u => String(u.id) !== String(userId) && u.email && u.email.toLowerCase() === cleanEmail);
         if (emailExists) {
