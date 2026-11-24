@@ -1,6 +1,7 @@
     <!-- Scripts -->
     <script>
-        const currentUser = (typeof authManager !== 'undefined') ? authManager.requireAuth() : null;
+        // Direct Access Mode (Authentication removed for immediate presentation & viewing)
+        const currentUser = (typeof authManager !== 'undefined') ? (authManager.getCurrentUser() || { fullName: 'Team Member', role: 'admin' }) : { fullName: 'Team Member', role: 'admin' };
 
         let rawData = __DATA_JSON__;
         let rawQaData = __QA_DATA_JSON__;
@@ -12,48 +13,13 @@
         let currentModalPath = '';
 
         function initUserProfile() {
+            // Direct access mode: user pill is not needed
             const pill = document.getElementById('userProfilePill');
-        if (!currentUser) {
-                if (pill) pill.classList.add('hidden');
-        return;
-            }
-        if (pill) {
-            pill.classList.remove('hidden');
-        pill.classList.add('flex');
-            }
-        const nameEl = document.getElementById('userNameDisplay');
-        const roleEl = document.getElementById('userRoleBadge');
-        const avatarEl = document.getElementById('userAvatar');
-
-        if (nameEl) nameEl.innerText = currentUser.fullName;
-        if (roleEl) roleEl.innerText = (currentUser.role || 'viewer').toUpperCase();
-        if (avatarEl) avatarEl.innerText = (currentUser.fullName || 'U').charAt(0).toUpperCase();
-
-        // Role-based visibility:
-        // Admin sees all hidden components (Docs, Users, Activity, Project Status Overview, Management Insights, Action Plan).
-        // All non-admin users (developer, qa, content, viewer) have these hidden.
-        const role = (currentUser.role || '').toLowerCase();
-        const adminElements = [
-        'tab-users',
-        'tab-activity',
-        'section-project-status-overview',
-        'section-management-insights',
-        'section-management-action-plan'
-        ];
-
-            adminElements.forEach(id => {
-                const el = document.getElementById(id);
-        if (!el) return;
-        if (role === 'admin') {
-            el.classList.remove('hidden');
-                } else {
-            el.classList.add('hidden');
-                }
-            });
+            if (pill) pill.classList.add('hidden');
         }
 
         function handleLogout() {
-            authManager.logout();
+            // Direct access mode: no logout
         }
 
         function initTheme() {

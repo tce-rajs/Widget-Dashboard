@@ -1277,20 +1277,6 @@ def generate():
     <script src="supabase_config.js?v=1.0.0"></script>
     <!-- Auth & Activity Manager -->
     <script src="auth.js?v=2.8.2"></script>
-    <script>
-        // Immediate Authentication Guard
-        (function () {
-            try {
-                const s = localStorage.getItem('widget_dashboard_auth_state_v1') || sessionStorage.getItem('widget_dashboard_auth_state_v1');
-                if (!s || !JSON.parse(s).user) {
-                    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-                    window.location.replace('login.html?redirect=' + encodeURIComponent(currentPath));
-                }
-            } catch (e) {
-                window.location.replace('login.html');
-            }
-        })();
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -1556,10 +1542,6 @@ def generate():
                                 class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 transition flex items-center justify-center cursor-pointer shadow-sm">
                                 <i data-lucide="moon" class="w-3.5 h-3.5"></i>
                             </button>
-                            <button onclick="handleLogout()" title="Log out"
-                                class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-slate-400 hover:text-rose-500 transition flex items-center justify-center cursor-pointer shadow-sm">
-                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                            </button>
                             <button onclick="exportCSV()" title="Export Excel / CSV"
                                 class="p-1 px-2 rounded-lg border border-slate-300 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/40 text-[11px] font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer flex items-center gap-1">
                                 <i data-lucide="download" class="w-3 h-3 text-emerald-500"></i>
@@ -1576,23 +1558,6 @@ def generate():
                 <!-- Desktop Action Buttons: Perfectly aligned in a unified top row with timestamp beneath -->
                 <div class="hidden sm:flex flex-col items-end gap-1.5 shrink-0">
                     <div class="flex items-center gap-2">
-                        <!-- User Profile Pill (if logged in) -->
-                        <div id="userProfilePill"
-                            class="app-subtle border rounded-lg px-2.5 h-8 text-xs items-center gap-2 hidden shadow-sm">
-                            <div class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[9px]"
-                                id="userAvatar">A</div>
-                            <div class="hidden sm:block text-left leading-tight">
-                                <div class="font-semibold text-slate-900 dark:text-white truncate max-w-[120px]"
-                                    id="userNameDisplay">User</div>
-                                <div class="text-[9px] text-slate-500 uppercase tracking-wider" id="userRoleBadge">Role
-                                </div>
-                            </div>
-                            <button onclick="handleLogout()" title="Log out of your session"
-                                class="text-slate-400 hover:text-rose-500 transition p-0.5">
-                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                            </button>
-                        </div>
-
                         <!-- Theme Toggle -->
                         <button type="button" onclick="toggleThemeQuick()" id="quickThemeBtn"
                             title="Toggle Dark/Light Mode"
@@ -3100,7 +3065,8 @@ def generate():
 </div>
     <!-- Scripts -->
     <script>
-        const currentUser = (typeof authManager !== 'undefined') ? authManager.requireAuth() : null;
+        // Direct Access Mode (Authentication removed for immediate presentation & viewing)
+        const currentUser = (typeof authManager !== 'undefined') ? (authManager.getCurrentUser() || { fullName: 'Team Member', role: 'admin' }) : { fullName: 'Team Member', role: 'admin' };
 
         let rawData = __DATA_JSON__;
         let rawQaData = __QA_DATA_JSON__;
@@ -3112,48 +3078,13 @@ def generate():
         let currentModalPath = '';
 
         function initUserProfile() {
+            // Direct access mode: user pill is not needed
             const pill = document.getElementById('userProfilePill');
-        if (!currentUser) {
-                if (pill) pill.classList.add('hidden');
-        return;
-            }
-        if (pill) {
-            pill.classList.remove('hidden');
-        pill.classList.add('flex');
-            }
-        const nameEl = document.getElementById('userNameDisplay');
-        const roleEl = document.getElementById('userRoleBadge');
-        const avatarEl = document.getElementById('userAvatar');
-
-        if (nameEl) nameEl.innerText = currentUser.fullName;
-        if (roleEl) roleEl.innerText = (currentUser.role || 'viewer').toUpperCase();
-        if (avatarEl) avatarEl.innerText = (currentUser.fullName || 'U').charAt(0).toUpperCase();
-
-        // Role-based visibility:
-        // Admin sees all hidden components (Docs, Users, Activity, Project Status Overview, Management Insights, Action Plan).
-        // All non-admin users (developer, qa, content, viewer) have these hidden.
-        const role = (currentUser.role || '').toLowerCase();
-        const adminElements = [
-        'tab-users',
-        'tab-activity',
-        'section-project-status-overview',
-        'section-management-insights',
-        'section-management-action-plan'
-        ];
-
-            adminElements.forEach(id => {
-                const el = document.getElementById(id);
-        if (!el) return;
-        if (role === 'admin') {
-            el.classList.remove('hidden');
-                } else {
-            el.classList.add('hidden');
-                }
-            });
+            if (pill) pill.classList.add('hidden');
         }
 
         function handleLogout() {
-            authManager.logout();
+            // Direct access mode: no logout
         }
 
         function initTheme() {
