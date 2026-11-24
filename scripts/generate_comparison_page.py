@@ -1711,10 +1711,9 @@ def generate():
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 uppercase tracking-wider">Executive Presentation</span>
-                                <span class="text-xs text-slate-400 dark:text-slate-500">· CEO &amp; Management Briefing</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 uppercase tracking-wider">Project Overview</span>
                             </div>
-                            <h2 class="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white mt-1">Executive Summary</h2>
+                            <h2 class="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white mt-1">Ecosystem Summary</h2>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                 Core widget inventory, repository availability, and production readiness across Excel Master, Code Repository, and QA Catalog.
                             </p>
@@ -2344,7 +2343,7 @@ def generate():
                                   <th class="py-2.5 px-3 text-center">In QA Catalog</th>
                                   <th class="py-2.5 px-3 text-center">Needs Dev</th>
                                   <th class="py-2.5 px-3 text-center">Readiness Rate</th>
-                                  <th class="py-2.5 px-3 text-center">Management Priority</th>
+                                  <th class="py-2.5 px-3 text-center">Development Priority</th>
                                   <th class="py-2.5 px-3 text-right">Action</th>
                               </tr>
                           </thead>
@@ -2783,7 +2782,7 @@ def generate():
                     <i data-lucide="file-text" class="w-4 h-4"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-base text-slate-900 dark:text-white">Widget Status Briefing Report</h3>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-white">Widget Status Report</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Printable summary of widget status and
                         production readiness</p>
                 </div>
@@ -4471,7 +4470,7 @@ def generate():
         content.innerHTML = `
         <div class="space-y-4">
             <div class="border-b pb-3">
-                <h4 class="text-base font-bold text-slate-900 dark:text-white">Widget Ecosystem Status Briefing</h4>
+                <h4 class="text-base font-bold text-slate-900 dark:text-white">Widget Ecosystem Status Report</h4>
                 <div class="text-xs text-slate-500">Audit Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} • Status: Cross-Source Audit Complete</div>
             </div>
 
@@ -4518,7 +4517,7 @@ def generate():
 
         function copyStatusReport() {
             const counts = getCategoryCounts();
-        const text = `WIDGET COMPARISON & STATUS BRIEFING REPORT
+        const text = `WIDGET COMPARISON & STATUS REPORT
 ==============================================================
 Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
 Status: All Sources Verified & Checked
@@ -4547,7 +4546,7 @@ Status: All Sources Verified & Checked
 - Low Priority: Reclassify 9 whiteboard tools to Platform Infrastructure.
 `;
             navigator.clipboard.writeText(text);
-            showToast('Status briefing copied to clipboard!', 'success');
+            showToast('Status report copied to clipboard!', 'success');
         }
 
         function exportCSV() {

@@ -1406,7 +1406,7 @@
         content.innerHTML = `
         <div class="space-y-4">
             <div class="border-b pb-3">
-                <h4 class="text-base font-bold text-slate-900 dark:text-white">Widget Ecosystem Status Briefing</h4>
+                <h4 class="text-base font-bold text-slate-900 dark:text-white">Widget Ecosystem Status Report</h4>
                 <div class="text-xs text-slate-500">Audit Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} • Status: Cross-Source Audit Complete</div>
             </div>
 
@@ -1453,7 +1453,7 @@
 
         function copyStatusReport() {
             const counts = getCategoryCounts();
-        const text = `WIDGET COMPARISON & STATUS BRIEFING REPORT
+        const text = `WIDGET COMPARISON & STATUS REPORT
 ==============================================================
 Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
 Status: All Sources Verified & Checked
@@ -1482,7 +1482,7 @@ Status: All Sources Verified & Checked
 - Low Priority: Reclassify 9 whiteboard tools to Platform Infrastructure.
 `;
             navigator.clipboard.writeText(text);
-            showToast('Status briefing copied to clipboard!', 'success');
+            showToast('Status report copied to clipboard!', 'success');
         }
 
         function exportCSV() {
