@@ -15,11 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Chart.js for Modern Interactive Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Supabase JS Client & Cloud Sync Config -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase_config.js?v=1.0.0"></script>
-    <!-- Auth & Activity Manager -->
-    <script src="auth.js?v=2.8.2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -335,16 +330,6 @@
                 <button onclick="drillDown('all')" id="tab-inventory"
                     class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap">
                     All Widgets (<span id="nav-tab-total">{total_count}</span>)
-                </button>
-
-                <!-- Admin Tabs -->
-                <button onclick="switchTab('users')" id="tab-users"
-                    class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
-                    User Management
-                </button>
-                <button onclick="switchTab('activity')" id="tab-activity"
-                    class="nav-tab text-center pb-2 sm:pb-2.5 font-semibold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition whitespace-nowrap hidden">
-                    Activity History
                 </button>
             </div>
 

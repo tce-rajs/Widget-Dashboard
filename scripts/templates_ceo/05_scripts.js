@@ -1,8 +1,5 @@
     <!-- Scripts -->
     <script>
-        // Direct Access Mode (Authentication removed for immediate presentation & viewing)
-        const currentUser = (typeof authManager !== 'undefined') ? (authManager.getCurrentUser() || { fullName: 'Team Member', role: 'admin' }) : { fullName: 'Team Member', role: 'admin' };
-
         let rawData = __DATA_JSON__;
         let rawQaData = __QA_DATA_JSON__;
         let filteredData = [...rawData];
@@ -11,16 +8,6 @@
         let sortCol = 'sr';
         let sortAsc = true;
         let currentModalPath = '';
-
-        function initUserProfile() {
-            // Direct access mode: user pill is not needed
-            const pill = document.getElementById('userProfilePill');
-            if (pill) pill.classList.add('hidden');
-        }
-
-        function handleLogout() {
-            // Direct access mode: no logout
-        }
 
         function initTheme() {
             const saved = localStorage.getItem('theme-preference') || 'system';
@@ -82,501 +69,33 @@
         });
 
         function switchTab(tabId) {
-            if ((tabId === 'users' || tabId === 'activity') && (!currentUser || currentUser.role !== 'admin')) {
-            showToast('Administrator privilege required', 'error');
-        return;
-            }
-
             document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-tab').forEach(el => {
-            el.classList.remove('border-blue-500', 'text-blue-500', 'dark:text-blue-400');
-        el.classList.add('border-transparent', 'text-slate-500', 'dark:text-slate-400');
+                el.classList.remove('border-blue-500', 'text-blue-500', 'dark:text-blue-400');
+                el.classList.add('border-transparent', 'text-slate-500', 'dark:text-slate-400');
             });
 
-        if (tabId === 'all') tabId = 'inventory';
+            if (tabId === 'all') tabId = 'inventory';
 
-        const targetView = document.getElementById('view-' + tabId);
-        if (targetView) targetView.classList.remove('hidden');
-        const activeTab = document.getElementById('tab-' + tabId);
-        if (activeTab) {
-            activeTab.classList.remove('border-transparent', 'text-slate-500', 'dark:text-slate-400');
-        activeTab.classList.add('border-blue-500', 'text-blue-500', 'dark:text-blue-400');
+            const targetView = document.getElementById('view-' + tabId);
+            if (targetView) targetView.classList.remove('hidden');
+            const activeTab = document.getElementById('tab-' + tabId);
+            if (activeTab) {
+                activeTab.classList.remove('border-transparent', 'text-slate-500', 'dark:text-slate-400');
+                activeTab.classList.add('border-blue-500', 'text-blue-500', 'dark:text-blue-400');
             }
 
-        if (tabId === 'inventory') filterWidgets();
-        else if (tabId === 'users') renderUsersTable();
-        else if (tabId === 'activity') renderActivityTable();
+            if (tabId === 'inventory') filterWidgets();
 
-        try {
-            sessionStorage.setItem('active_dashboard_tab', tabId);
-        if (window.history && window.history.replaceState) {
-            window.history.replaceState(null, '', '#' + tabId);
+            try {
+                sessionStorage.setItem('active_dashboard_tab', tabId);
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, '', '#' + tabId);
                 }
             } catch { }
 
-        if (typeof authManager !== 'undefined') {
-            authManager.logActivity('NAVIGATION', tabId.toUpperCase(), '', `Switched to ${tabId} tab`);
-            }
-        lucide.createIcons();
-        window.scrollTo({top: 0, behavior: 'smooth' });
-        }
-
-        let pendingDeleteUserId = null;
-
-        function renderUsersTable() {
-            if (typeof authManager === 'undefined') return;
-        const users = authManager.getUsers();
-        const tbody = document.getElementById('userTableBody');
-        const mobileContainer = document.getElementById('userMobileCardsList');
-        if (!tbody) return;
-        if (typeof updateCloudSyncUI === 'function') updateCloudSyncUI();
-
-        const totalEl = document.getElementById('statTotalUsers');
-        const activeEl = document.getElementById('statActiveUsers');
-        const adminEl = document.getElementById('statAdminUsers');
-        const staffEl = document.getElementById('statStaffUsers');
-
-        if (totalEl) totalEl.innerText = users.length;
-            if (activeEl) activeEl.innerText = users.filter(u => u.status === 'active').length;
-            if (adminEl) adminEl.innerText = users.filter(u => u.role === 'admin').length;
-            if (staffEl) staffEl.innerText = users.filter(u => u.role !== 'admin' && u.role !== 'viewer').length;
-
-        const currUser = authManager.getCurrentUser() || { };
-
-            tbody.innerHTML = users.map(u => {
-                const isSelf = String(u.id) === String(currUser.id) ||
-        (u.email && currUser.email && u.email.toLowerCase() === currUser.email.toLowerCase()) ||
-        (u.username && currUser.username && u.username.toLowerCase() === currUser.username.toLowerCase());
-
-        const roleColors = {
-            admin: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800',
-        developer: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800',
-        qa: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800',
-        content: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800',
-        viewer: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800'
-                };
-        const roleClass = roleColors[u.role] || roleColors.viewer;
-
-        return `
-        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-            <td class="py-3 px-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
-                        ${(u.fullName || 'U').charAt(0).toUpperCase()}
-                    </div>
-                    <div class="min-w-0">
-                        <div class="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                            <span class="truncate">${u.fullName || 'User'}</span>
-                            ${isSelf ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold uppercase">You</span>' : ''}
-                        </div>
-                        <div class="text-[11px] text-slate-400 font-mono truncate">${u.email}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="py-3 px-4">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase border ${roleClass}">
-                    ${u.role}
-                </span>
-            </td>
-            <td class="py-3 px-4">
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'}">
-                    <span class="w-1.5 h-1.5 rounded-full ${u.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
-                    ${u.status}
-                </span>
-            </td>
-            <td class="py-3 px-4 font-mono text-[11px] text-slate-500">
-                ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
-            </td>
-            <td class="py-3 px-4 text-right">
-                <div class="inline-flex items-center gap-1.5 justify-end">
-                    <button onclick="openEditUserModal('${u.id}')" title="Edit user details" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 transition flex items-center gap-1 cursor-pointer">
-                        <i data-lucide="edit-3" class="w-3 h-3"></i>
-                        <span>Edit</span>
-                    </button>
-                    <button onclick="toggleUserStatus('${u.id}')" title="${u.status === 'active' ? 'Disable account' : 'Activate account'}" class="px-2.5 py-1 rounded-md text-[11px] font-semibold ${u.status === 'active' ? 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800' : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'} transition flex items-center gap-1 cursor-pointer" ${isSelf ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
-                        <i data-lucide="${u.status === 'active' ? 'user-x' : 'user-check'}" class="w-3 h-3"></i>
-                        <span>${u.status === 'active' ? 'Disable' : 'Enable'}</span>
-                    </button>
-                    <button onclick="openDeleteUserModal('${u.id}')" title="Delete user" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 transition flex items-center gap-1 cursor-pointer" ${isSelf ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
-                        <i data-lucide="trash-2" class="w-3 h-3"></i>
-                        <span>Delete</span>
-                    </button>
-                </div>
-            </td>
-        </tr>
-        `;
-            }).join('');
-
-        if (mobileContainer) {
-            mobileContainer.innerHTML = users.map(u => {
-                const isSelf = String(u.id) === String(currUser.id) ||
-                    (u.email && currUser.email && u.email.toLowerCase() === currUser.email.toLowerCase()) ||
-                    (u.username && currUser.username && u.username.toLowerCase() === currUser.username.toLowerCase());
-                return `
-                    <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
-                                    ${(u.fullName || 'U').charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <div class="font-semibold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
-                                        <span>${u.fullName || 'User'}</span>
-                                        ${isSelf ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 dark:bg-blue-900 text-blue-600 font-semibold uppercase">You</span>' : ''}
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 font-mono">${u.email}</div>
-                                </div>
-                            </div>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                                ${u.role}
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">
-                            <span>Status: <strong class="${u.status === 'active' ? 'text-emerald-600' : 'text-slate-400'}">${u.status}</strong></span>
-                            <span>Login: <strong>${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}</strong></span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 pt-1">
-                            <button onclick="openEditUserModal('${u.id}')" class="py-1.5 rounded-lg text-center text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex items-center justify-center gap-1">
-                                <i data-lucide="edit-3" class="w-3 h-3"></i>
-                                <span>Edit</span>
-                            </button>
-                            <button onclick="toggleUserStatus('${u.id}')" class="py-1.5 rounded-lg text-center text-xs font-semibold ${u.status === 'active' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'} border flex items-center justify-center gap-1" ${isSelf ? 'disabled style="opacity: 0.3;"' : ''}>
-                                <i data-lucide="${u.status === 'active' ? 'user-x' : 'user-check'}" class="w-3 h-3"></i>
-                                <span>${u.status === 'active' ? 'Disable' : 'Enable'}</span>
-                            </button>
-                            <button onclick="openDeleteUserModal('${u.id}')" class="py-1.5 rounded-lg text-center text-xs font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 flex items-center justify-center gap-1" ${isSelf ? 'disabled style="opacity: 0.3;"' : ''}>
-                                <i data-lucide="trash-2" class="w-3 h-3"></i>
-                                <span>Delete</span>
-                            </button>
-                        </div>
-                    </div>
-                    `;
-            }).join('');
-            }
-
-        if (window.lucide) lucide.createIcons();
-        }
-
-        // ==========================================
-        // SUPABASE CLOUD DATABASE SYNC CONTROLS
-        // ==========================================
-        const SUPABASE_SCHEMA_SQL = `-- Supabase PostgreSQL Schema for Widget Dashboard
-        create table if not exists public.app_users (
-        id text primary key,
-        full_name text not null,
-        username text not null,
-        email text unique not null,
-        password_hash text not null,
-        role text not null default 'viewer',
-        status text not null default 'active',
-        created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-        last_login timestamp with time zone
-        );
-
-        create table if not exists public.app_activity_logs (
-        id text primary key,
-        user_id text,
-        user_name text,
-        user_email text,
-        role text,
-        activity_type text not null,
-        section text,
-        target_ref text,
-        details text,
-        timestamp timestamp with time zone default timezone('utc'::text, now()) not null
-        );
-
-        alter table public.app_users enable row level security;
-        alter table public.app_activity_logs enable row level security;
-
-        grant usage on schema public to anon, authenticated, service_role;
-        grant all on table public.app_users to anon, authenticated, service_role;
-        grant all on table public.app_activity_logs to anon, authenticated, service_role;
-
-        create policy "Allow anon read and write on app_users" on public.app_users for all to anon, authenticated using (true) with check (true);
-        create policy "Allow anon read and write on app_activity_logs" on public.app_activity_logs for all to anon, authenticated using (true) with check (true);
-
-        alter publication supabase_realtime add table public.app_users;
-        alter publication supabase_realtime add table public.app_activity_logs;`;
-
-        function openCloudSyncModal() {
-            const modal = document.getElementById('cloudSyncModal');
-        if (!modal) return;
-        if (typeof authManager !== 'undefined') {
-                const config = authManager.getSupabaseConfig();
-        const urlEl = document.getElementById('supabaseUrlInput');
-        const keyEl = document.getElementById('supabaseKeyInput');
-        if (urlEl) urlEl.value = config.url || '';
-        if (keyEl) keyEl.value = config.anonKey || '';
-            }
-        updateCloudSyncUI();
-        modal.classList.remove('hidden');
-        if (window.lucide) lucide.createIcons();
-        }
-
-        function closeCloudSyncModal() {
-            const modal = document.getElementById('cloudSyncModal');
-        if (modal) modal.classList.add('hidden');
-        }
-
-        async function saveAndConnectSupabase() {
-            if (typeof authManager === 'undefined') return;
-        const urlInput = document.getElementById('supabaseUrlInput');
-        const keyInput = document.getElementById('supabaseKeyInput');
-        const url = urlInput ? urlInput.value.trim() : '';
-        const key = keyInput ? keyInput.value.trim() : '';
-
-        const btn = document.getElementById('saveSupabaseBtn');
-        const originalBtn = btn ? btn.innerHTML : '';
-        if (btn) btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Connecting...</span>';
-
-        authManager.saveSupabaseConfig(url, key, true);
-
-        if (url && key) {
-                try {
-                    const res = await authManager.syncWithCloud();
-        if (res && res.error) {
-            showToast(`Supabase Error: ${res.error}`, 'error');
-                    } else if (res && res.seeded) {
-            showToast(`Connected & uploaded ${res.count || 7} team accounts to cloud!`, 'success');
-                    } else if (res && res.count) {
-            showToast(`Connected! Synced ${res.count} team accounts from cloud.`, 'success');
-                    } else {
-            showToast('Connected to Supabase PostgreSQL successfully!', 'success');
-                    }
-                } catch (e) {
-            showToast('Connection error: ' + (e.message || e), 'error');
-                }
-            } else {
-            showToast('Switched to local offline browser storage.', 'info');
-            }
-
-        if (btn) btn.innerHTML = originalBtn;
-        updateCloudSyncUI();
-        renderUsersTable();
-        closeCloudSyncModal();
-        if (window.lucide) lucide.createIcons();
-        }
-
-        function copySupabaseSchema() {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(SUPABASE_SCHEMA_SQL).then(() => {
-                showToast('Supabase SQL Schema copied to clipboard!', 'success');
-            }).catch(() => {
-                showToast('Please copy schema from scripts/supabase_schema.sql', 'info');
-            });
-            } else {
-            showToast('Please copy schema from scripts/supabase_schema.sql', 'info');
-            }
-        }
-
-        function updateCloudSyncUI() {
-            if (typeof authManager === 'undefined') return;
-        const isConnected = authManager.isSupabaseConnected();
-        const isConfigured = authManager.isSupabaseConfigured();
-
-        const dot = document.getElementById('cloudStatusDot');
-        const text = document.getElementById('cloudStatusBtnText');
-        const modalDot = document.getElementById('cloudModalStatusDot');
-        const modalTitle = document.getElementById('cloudModalStatusTitle');
-        const modalBadge = document.getElementById('cloudModeBadge');
-        const modalDesc = document.getElementById('cloudModalStatusDesc');
-        const cloudBadge = document.getElementById('cloudStatusBadge');
-
-        if (isConnected) {
-                if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-        if (text) text.textContent = 'Cloud Connected';
-        if (modalDot) modalDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
-        if (modalTitle) modalTitle.textContent = 'Supabase Cloud Connected';
-        if (modalBadge) {
-            modalBadge.className = 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20';
-        modalBadge.textContent = 'Live PostgreSQL Sync';
-                }
-        if (modalDesc) modalDesc.textContent = 'Real-time multi-device sync is active. Any user created, updated, or removed will sync instantly across all machines.';
-        if (cloudBadge) {
-            cloudBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20';
-        cloudBadge.textContent = 'v2.8 Live Cloud DB';
-                }
-            } else if (isConfigured) {
-                if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-500';
-        if (text) text.textContent = 'Connecting...';
-        if (modalDot) modalDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
-        if (modalTitle) modalTitle.textContent = 'Connecting to Supabase...';
-        if (modalBadge) {
-            modalBadge.className = 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20';
-        modalBadge.textContent = 'Connecting';
-                }
-        if (modalDesc) modalDesc.textContent = 'Attempting connection to your Supabase instance. Ensure tables exist by running scripts/supabase_schema.sql.';
-            } else {
-                if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-400';
-        if (text) text.textContent = 'Cloud Database';
-        if (modalDot) modalDot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
-        if (modalTitle) modalTitle.textContent = 'Local Offline Mode';
-        if (modalBadge) {
-            modalBadge.className = 'font-mono text-[10px] px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20';
-        modalBadge.textContent = 'Browser Storage';
-                }
-        if (modalDesc) modalDesc.textContent = 'Currently storing accounts locally in your browser. Connect Supabase to sync team accounts across all computers, tablets, and phones in real-time.';
-            }
-        if (window.lucide) lucide.createIcons();
-        }
-
-        // Auto-refresh user table when users change via cloud or other tabs
-        window.addEventListener('dashboard_users_changed', () => {
-            if (typeof renderUsersTable === 'function') renderUsersTable();
-        if (typeof updateCloudSyncUI === 'function') updateCloudSyncUI();
-        });
-
-        function openAddUserModal() {
-            const modal = document.getElementById('addUserModal');
-        if (!modal) return;
-        document.getElementById('addUserName').value = '';
-        document.getElementById('addUserEmail').value = '';
-        document.getElementById('addUserRole').value = 'viewer';
-        document.getElementById('addUserPass').value = 'Widget2026!';
-        modal.classList.remove('hidden');
-        if (window.lucide) lucide.createIcons();
-        }
-
-        function closeAddUserModal() {
-            const modal = document.getElementById('addUserModal');
-        if (modal) modal.classList.add('hidden');
-        }
-
-        function handleSaveNewUser(e) {
-            e.preventDefault();
-        if (typeof authManager === 'undefined') return;
-        const name = document.getElementById('addUserName').value.trim();
-        const email = document.getElementById('addUserEmail').value.trim();
-        const role = document.getElementById('addUserRole').value;
-        const pass = document.getElementById('addUserPass').value.trim();
-
-        const res = authManager.addUser(name, email, pass, role);
-        if (res.success) {
-            closeAddUserModal();
-        renderUsersTable();
-        showToast(`User ${name} added successfully!`, 'success');
-            } else {
-            alert(res.error || 'Failed to create user');
-            }
-        }
-
-        function openEditUserModal(userId) {
-            if (typeof authManager === 'undefined') return;
-        const users = authManager.getUsers();
-            const user = users.find(u => String(u.id) === String(userId));
-        if (!user) return;
-
-        document.getElementById('editUserId').value = user.id;
-        document.getElementById('editUserName').value = user.fullName || '';
-        document.getElementById('editUserEmail').value = user.email || '';
-        document.getElementById('editUserRole').value = user.role || 'viewer';
-        document.getElementById('editUserPass').value = '';
-
-        const modal = document.getElementById('editUserModal');
-        if (modal) modal.classList.remove('hidden');
-        if (window.lucide) lucide.createIcons();
-        }
-
-        function closeEditUserModal() {
-            const modal = document.getElementById('editUserModal');
-        if (modal) modal.classList.add('hidden');
-        }
-
-        function handleSaveEditUser(e) {
-            e.preventDefault();
-        if (typeof authManager === 'undefined') return;
-        const id = document.getElementById('editUserId').value;
-        const name = document.getElementById('editUserName').value.trim();
-        const email = document.getElementById('editUserEmail').value.trim();
-        const role = document.getElementById('editUserRole').value;
-        const pass = document.getElementById('editUserPass').value.trim();
-
-        const res = authManager.editUser(id, {fullName: name, email, role, password: pass });
-        if (res.success) {
-            closeEditUserModal();
-        renderUsersTable();
-        initUserProfile();
-        showToast(`User details updated successfully!`, 'success');
-            } else {
-            alert(res.error || 'Failed to update user');
-            }
-        }
-
-        function toggleUserStatus(userId) {
-            if (typeof authManager === 'undefined') return;
-        const res = authManager.toggleUserStatus(userId);
-        if (res.success) {
-            renderUsersTable();
-        showToast(`User status updated to ${res.status.toUpperCase()}`, 'info');
-            } else {
-            alert(res.error || 'Failed to change status');
-            }
-        }
-
-        function openDeleteUserModal(userId) {
-            if (typeof authManager === 'undefined') return;
-        const users = authManager.getUsers();
-            const user = users.find(u => String(u.id) === String(userId));
-        if (!user) return;
-
-        pendingDeleteUserId = userId;
-        const nameEl = document.getElementById('deleteTargetName');
-        const emailEl = document.getElementById('deleteTargetEmail');
-        const roleEl = document.getElementById('deleteTargetRole');
-
-        if (nameEl) nameEl.innerText = user.fullName || 'User';
-        if (emailEl) emailEl.innerText = user.email || '';
-        if (roleEl) roleEl.innerText = `Role: ${(user.role || '').toUpperCase()}`;
-
-        const modal = document.getElementById('deleteUserModal');
-        if (modal) modal.classList.remove('hidden');
-        if (window.lucide) lucide.createIcons();
-        }
-
-        function closeDeleteUserModal() {
-            pendingDeleteUserId = null;
-        const modal = document.getElementById('deleteUserModal');
-        if (modal) modal.classList.add('hidden');
-        }
-
-        function confirmDeleteUser() {
-            if (!pendingDeleteUserId || typeof authManager === 'undefined') return;
-        const res = authManager.deleteUser(pendingDeleteUserId);
-        if (res.success) {
-            closeDeleteUserModal();
-        renderUsersTable();
-        showToast('User permanently removed', 'success');
-            } else {
-            alert(res.error || 'Failed to delete user');
-            }
-        }
-
-        function renderActivityTable() {
-            if (typeof authManager === 'undefined') return;
-        const logs = authManager.getLogs ? authManager.getLogs() : [];
-        const tbody = document.getElementById('activityTableBody');
-        if (!tbody) return;
-        if (typeof updateCloudSyncUI === 'function') updateCloudSyncUI();
-
-        if (logs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">No activity logged yet.</td></tr>';
-        return;
-            }
-
-            tbody.innerHTML = logs.map(l => `
-        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-            <td class="py-2.5 px-4 font-mono text-[11px] text-slate-500">${l.timestamp ? new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''}</td>
-            <td class="py-2.5 px-4">
-                <div class="font-medium text-slate-900 dark:text-white">${l.userName || l.userEmail || ''}</div>
-                <div class="text-[10px] text-slate-400 font-mono uppercase">${l.role || ''}</div>
-            </td>
-            <td class="py-2.5 px-4 font-mono text-[11px] font-semibold text-teal-600 dark:text-teal-400">${l.activityType || ''}</td>
-            <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400">${l.section || ''}</td>
-            <td class="py-2.5 px-4 text-slate-500">${l.details || ''}</td>
-        </tr>
-        `).join('');
-        if (window.lucide) lucide.createIcons();
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function setSourceToggle(mode) {
@@ -1689,23 +1208,17 @@ Status: All Sources Verified & Checked
             }
         }
 
-        // Initialize UI, Theme, Profile, Filter & Charts
+        // Initialize UI, Theme, Filter & Charts
         initTheme();
-        initUserProfile();
         filterWidgets();
         initOverviewCharts();
-
-        // Warm up users table & stats for admin on load so data is instantly ready
-        if (currentUser && currentUser.role === 'admin') {
-            renderUsersTable();
-        }
 
         // Restore active tab across page refresh / reload
         try {
             const hashTab = (window.location.hash || '').replace('#', '').trim();
             const savedTab = sessionStorage.getItem('active_dashboard_tab');
             const candidateTab = hashTab || savedTab;
-            if (candidateTab && ['overview', 'inventory', 'users', 'activity'].includes(candidateTab)) {
+            if (candidateTab && ['overview', 'inventory'].includes(candidateTab)) {
                 if (candidateTab !== 'overview') {
                     switchTab(candidateTab);
                 }
